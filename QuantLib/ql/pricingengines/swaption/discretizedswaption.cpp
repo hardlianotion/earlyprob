@@ -87,9 +87,35 @@ namespace QuantLib {
                                                                 dayCounter));
     }
 
-    void DiscretizedSwaption::reset(Size size) {
-        underlying_->initialize(method(), lastPayment_);
-        DiscretizedOption::reset(size);
-    }
+	const std::vector<std::pair<bool, size_t> >& DiscretizedSwaption::exerciseIndex() const {
+		return exerciseIndex_;
+	}
+
+	void DiscretizedSwaption::reset(Size size) {
+		underlying_->initialize(method(), lastPayment_);
+		DiscretizedOption::reset(size);
+	}
+
+	const std::vector<Date>& DiscretizedSwaption::exerciseDates() const {
+		return arguments_.exercise->dates();
+	}
+
+	void DiscretizedSwaption::applyExerciseCondition() {
+		std::pair<bool, size_t> exercised = std::make_pair(false, 0);
+
+		for (Size i = 0; i < values_.size(); i++) {
+			values_[i] = std::max(underlying_->values()[i], values_[i]);
+			exerciseMargins_[i] = underlying_->values()[i] - values_[i];
+			if (!exercised.first && exerciseMargins_[i] < 0.0) {
+				exercised.first = true;
+				exercised.second = i;
+				exerciseIndex_.push_back(exercised);
+			}
+		}
+		if (!exercised.first) {
+			exerciseIndex_.push_back(exercised);
+		}
+	}
+
 
 }

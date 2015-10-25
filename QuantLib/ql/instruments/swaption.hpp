@@ -83,6 +83,9 @@ namespace QuantLib {
         const boost::shared_ptr<VanillaSwap>& underlyingSwap() const {
             return swap_;
         }
+		//! Excercise Probability.  This can only be used whe there is some optionality remaining.
+		std::pair<Real, Real> exerciseProbabilityAndRate(Time exerciseDate) const;
+
         //@}
         //! implied volatility
         Volatility impliedVolatility(

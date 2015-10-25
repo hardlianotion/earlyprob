@@ -2630,7 +2630,7 @@
     </ClInclude>
     <ClInclude Include="ql\time\calendars\israel.hpp">
       <Filter>time\calendars</Filter>
-    </ClInclude>	
+    </ClInclude>
     <ClInclude Include="ql\time\calendars\italy.hpp">
       <Filter>time\calendars</Filter>
     </ClInclude>
@@ -3990,6 +3990,12 @@
     </ClInclude>
     <ClInclude Include="ql\instruments\futures.hpp">
       <Filter>instruments</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\pricingengines\additionalresultcalculators.hpp">
+      <Filter>pricingengines</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.hpp">
+      <Filter>pricingengines</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -5423,7 +5429,7 @@
     </ClCompile>
     <ClCompile Include="ql\time\calendars\israel.cpp">
       <Filter>time\calendars</Filter>
-    </ClCompile>	
+    </ClCompile>
     <ClCompile Include="ql\time\calendars\italy.cpp">
       <Filter>time\calendars</Filter>
     </ClCompile>
@@ -6427,6 +6433,12 @@
     </ClCompile>
     <ClCompile Include="ql\instruments\futures.cpp">
       <Filter>instruments</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\pricingengines\additionalresultcalculators.cpp">
+      <Filter>pricingengines</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.cpp">
+      <Filter>pricingengines</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

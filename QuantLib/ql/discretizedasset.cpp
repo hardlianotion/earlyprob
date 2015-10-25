@@ -50,5 +50,14 @@ namespace QuantLib {
         underlying_->postAdjustValues();
     }
 
+	std::vector<Time> DiscretizedOption::positiveExerciseTimes() const {
+		std::vector<Time> result;
+		for (size_t i = 0; i < exerciseTimes_.size(); ++i) {
+			result.push_back(exerciseTimes_[i]);
+		}
+
+		return result;
+	}
+
 }
 

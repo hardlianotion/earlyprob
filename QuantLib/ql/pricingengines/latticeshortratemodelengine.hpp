@@ -27,6 +27,7 @@
 
 #include <ql/models/model.hpp>
 #include <ql/pricingengines/genericmodelengine.hpp>
+#include <ql/pricingengines/additionalresultcalculators.hpp>
 
 namespace QuantLib {
 
@@ -52,6 +53,7 @@ namespace QuantLib {
         TimeGrid timeGrid_;
         Size timeSteps_;
         boost::shared_ptr<Lattice> lattice_;
+		boost::shared_ptr<AdditionalResultCalculator> additionalResultsCalculator_;
     };
 
     template <class Arguments, class Results>
