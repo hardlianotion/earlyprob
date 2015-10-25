@@ -27,35 +27,35 @@
 #include <ql/math/distributions/normaldistribution.hpp>
 
 using namespace QuantLib;
-using namespace boost::unit_test_framework;
+namespace utf = boost::unit_test_framework;
 
 namespace {
 
-    class DummyOptimizationMethod : public OptimizationMethod {
-      public:
-        virtual EndCriteria::Type minimize(Problem& P,
-                                           const EndCriteria& endCriteria) {
-            P.setFunctionValue(P.value(P.currentValue()));
-            return EndCriteria::None;
-        }
-    };
+	class DummyOptimizationMethod : public OptimizationMethod {
+	public:
+		virtual EndCriteria::Type minimize(Problem& P,
+			const EndCriteria& endCriteria) {
+			P.setFunctionValue(P.value(P.currentValue()));
+			return EndCriteria::None;
+		}
+	};
 
-    struct Results {
-        Real alpha;
-        Real beta;
-        Real omega;
-        Real logLikelihood;
-    };
+	struct Results {
+		Real alpha;
+		Real beta;
+		Real omega;
+		Real logLikelihood;
+	};
 
-    typedef InverseCumulativeRng<MersenneTwisterUniformRng,
-                                 InverseCumulativeNormal>
-        GaussianGenerator;
+	typedef InverseCumulativeRng<MersenneTwisterUniformRng,
+		InverseCumulativeNormal>
+		GaussianGenerator;
 
-    static Real tolerance = 1e-6;
+	const Real tolerance = 1e-6;
 }
 
-#define CHECK(results, garch, member, tolerance) \
-    if (std::fabs(results.member - garch.member()) > tolerance) { \
+#define CHECK(results, garch, member, tol) \
+    if (std::fabs(results.member - garch.member()) > tol) { \
         BOOST_ERROR("Failed to reproduce expected " #member \
                     << "\n    calculated: " << garch.member() \
                     << "\n    expected:   " << results.member); \
@@ -81,7 +81,7 @@ void GARCHTest::testCalibration() {
     Garch11 cgarch1(ts);
 
     Results calibrated = { 0.207592, 0.281979, 0.204647, -0.0217413 };
-
+	
     CHECK(calibrated, cgarch1, alpha, tolerance);
     CHECK(calibrated, cgarch1, beta, tolerance);
     CHECK(calibrated, cgarch1, omega, tolerance);
@@ -186,8 +186,8 @@ void GARCHTest::testCalculation() {
     std::for_each(tsout.cbegin(), tsout.cend(), check_ts);
 }
 
-test_suite* GARCHTest::suite() {
-    test_suite* suite = BOOST_TEST_SUITE("GARCH model tests");
+utf::test_suite* GARCHTest::suite() {
+	utf::test_suite* suite = BOOST_TEST_SUITE("GARCH model tests");
     suite->add(QUANTLIB_TEST_CASE(&GARCHTest::testCalibration));
     suite->add(QUANTLIB_TEST_CASE(&GARCHTest::testCalculation));
     return suite;

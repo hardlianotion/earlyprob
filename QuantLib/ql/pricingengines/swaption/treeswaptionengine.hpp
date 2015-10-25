@@ -53,19 +53,26 @@ namespace QuantLib {
         TreeSwaptionEngine(const boost::shared_ptr<ShortRateModel>&,
                            Size timeSteps,
                            const Handle<YieldTermStructure>& termStructure =
-                                                 Handle<YieldTermStructure>());
+                                                 Handle<YieldTermStructure>(),
+						   const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator =
+												 boost::shared_ptr<AdditionalResultCalculator>(new AdditionalResultCalculator()));
         TreeSwaptionEngine(const boost::shared_ptr<ShortRateModel>&,
                            const TimeGrid& timeGrid,
                            const Handle<YieldTermStructure>& termStructure =
-                                                 Handle<YieldTermStructure>());
+                                                 Handle<YieldTermStructure>(),
+						   const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator =
+												 boost::shared_ptr<AdditionalResultCalculator>(new AdditionalResultCalculator()));
         TreeSwaptionEngine(const Handle<ShortRateModel>&,
                            Size timeSteps,
                            const Handle<YieldTermStructure>& termStructure =
-                                                 Handle<YieldTermStructure>());
+                                                 Handle<YieldTermStructure>(),
+						   const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator = 
+												 boost::shared_ptr<AdditionalResultCalculator>(new AdditionalResultCalculator()));
         //@}
         void calculate() const;
       private:
         Handle<YieldTermStructure> termStructure_;
+		boost::shared_ptr<AdditionalResultCalculator> additionalResultCalculator_;
     };
 
 }

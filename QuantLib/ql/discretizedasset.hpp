@@ -167,6 +167,7 @@ namespace QuantLib {
           exerciseTimes_(exerciseTimes) {}
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
+		std::vector<Time> positiveExerciseTimes() const;
       protected:
         void postAdjustValuesImpl();
         void applyExerciseCondition();

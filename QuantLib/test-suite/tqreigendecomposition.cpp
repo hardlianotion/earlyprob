@@ -22,7 +22,7 @@
 #include <ql/math/matrixutilities/tqreigendecomposition.hpp>
 
 using namespace QuantLib;
-using namespace boost::unit_test_framework;
+namespace utf = boost::unit_test_framework;
 
 namespace {
 
@@ -100,8 +100,8 @@ void TqrEigenDecompositionTest::testEigenVectorDecomposition() {
     }
 }
 
-test_suite* TqrEigenDecompositionTest::suite() {
-    test_suite* suite = BOOST_TEST_SUITE("TQR eigendecomposition tests");
+utf::test_suite* TqrEigenDecompositionTest::suite() {
+    utf::test_suite* suite = BOOST_TEST_SUITE("TQR eigendecomposition tests");
     suite->add(QUANTLIB_TEST_CASE(
                    &TqrEigenDecompositionTest::testEigenValueDecomposition));
     suite->add(QUANTLIB_TEST_CASE(
