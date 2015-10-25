@@ -30,8 +30,8 @@ namespace QuantLib {
                               const Handle<YieldTermStructure>& termStructure,
 							  const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : LatticeShortRateModelEngine<Swaption::arguments,
-                                  Swaption::results>(model, timeSteps),
-      termStructure_(termStructure), additionalResultCalculator_(additionalResultCalculator) {
+                                  Swaption::results>(model, timeSteps, additionalResultCalculator),
+      termStructure_(termStructure) {
         registerWith(termStructure_);
     }
 
@@ -41,8 +41,8 @@ namespace QuantLib {
                               const Handle<YieldTermStructure>& termStructure,
 							  const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : LatticeShortRateModelEngine<Swaption::arguments,
-                                  Swaption::results>(model, timeGrid),
-      termStructure_(termStructure), additionalResultCalculator_(additionalResultCalculator) {
+                                  Swaption::results>(model, timeGrid, additionalResultCalculator),
+      termStructure_(termStructure) {
         registerWith(termStructure_);
     }
 
@@ -52,8 +52,8 @@ namespace QuantLib {
                               const Handle<YieldTermStructure>& termStructure,
 							  const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : LatticeShortRateModelEngine<Swaption::arguments,
-                                  Swaption::results>(model, timeSteps),
-      termStructure_(termStructure), additionalResultCalculator_(additionalResultCalculator) {
+                                  Swaption::results>(model, timeSteps, additionalResultCalculator),
+      termStructure_(termStructure) {
         registerWith(termStructure_);
     }
 
@@ -77,7 +77,11 @@ namespace QuantLib {
         }
 
         boost::shared_ptr<DiscretizedSwaption> swaption(new DiscretizedSwaption(arguments_, referenceDate, dayCounter));
-		additionalResultCalculator_->setupDiscretizedAsset(swaption);
+        
+        if (additionalResultCalculator_) {
+            additionalResultCalculator_->setupDiscretizedAsset(swaption);
+        }
+        
         boost::shared_ptr<Lattice> lattice;
 
         if (lattice_) {
@@ -102,7 +106,9 @@ namespace QuantLib {
                           std::bind2nd(std::greater_equal<Time>(), 0.0));
         swaption->rollback(nextExercise);
         results_.value = swaption->presentValue();
-		results_.additionalResults = additionalResultsCalculator_->additionalResults();
+        if (additionalResultCalculator_) {
+            results_.additionalResults = additionalResultCalculator_->additionalResults();
+        }
     }
 
 }
