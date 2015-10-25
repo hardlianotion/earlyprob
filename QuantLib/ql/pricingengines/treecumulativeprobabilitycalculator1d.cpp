@@ -32,7 +32,7 @@ namespace QuantLib{
 			int negativeDateCount = static_cast<int>(tempExercised.size()) - exerciseTimes_.size();
 
 			QL_REQUIRE(negativeDateCount >= 0, "Exercise dates definition error.  The number of past exercise days should be positive by construction.");
-			exerciseDates_.reserve(tempExercised.size());
+			exerciseDates_.resize(tempExercised.size());
 			for (int i = tempExercised.size() - 1; i >= negativeDateCount; --i) {
 				exerciseDates_[i] = tempExercised[i - negativeDateCount];
 			}

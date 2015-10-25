@@ -35,6 +35,7 @@
 #include <boost/timer.hpp>
 #include <iostream>
 #include <iomanip>
+#include <ql/pricingengines/treecumulativeprobabilitycalculator1d.hpp>
 
 using namespace QuantLib;
 
@@ -214,7 +215,8 @@ int main(int, char* []) {
                   << "rho   = " << modelG2->params()[4]
                   << std::endl << std::endl;
 
-
+        //set up other result requests
+        boost::shared_ptr<AdditionalResultCalculator> resultCalculator(new TreeCumulativeProbabilityCalculator1D);
 
         std::cout << "Hull-White (analytic formulae) calibration" << std::endl;
         for (i=0; i<swaptions.size(); i++)
@@ -230,7 +232,7 @@ int main(int, char* []) {
         std::cout << "Hull-White (numerical) calibration" << std::endl;
         for (i=0; i<swaptions.size(); i++)
             swaptions[i]->setPricingEngine(boost::shared_ptr<PricingEngine>(
-                                     new TreeSwaptionEngine(modelHW2, grid)));
+                                     new TreeSwaptionEngine(modelHW2, grid, Handle<YieldTermStructure>(), resultCalculator)));
 
         calibrateModel(modelHW2, swaptions);
         std::cout << "calibrated to:\n"
@@ -241,7 +243,7 @@ int main(int, char* []) {
         std::cout << "Black-Karasinski (numerical) calibration" << std::endl;
         for (i=0; i<swaptions.size(); i++)
             swaptions[i]->setPricingEngine(boost::shared_ptr<PricingEngine>(
-                                      new TreeSwaptionEngine(modelBK, grid)));
+                                      new TreeSwaptionEngine(modelBK, grid, Handle<YieldTermStructure>(), resultCalculator)));
 
         calibrateModel(modelBK, swaptions);
         std::cout << "calibrated to:\n"

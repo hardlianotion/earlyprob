@@ -20,6 +20,7 @@
 #include <ql/models/shortrate/onefactormodels/blackkarasinski.hpp>
 #include <ql/methods/lattices/trinomialtree.hpp>
 #include <ql/math/solvers1d/brent.hpp>
+#include <ql/pricingengines/treecumulativeprobabilitycalculator1d.hpp>
 
 namespace QuantLib {
 
@@ -66,7 +67,8 @@ namespace QuantLib {
     }
 
     boost::shared_ptr<Lattice>
-    BlackKarasinski::tree(const TimeGrid& grid) const {
+    BlackKarasinski::tree(const TimeGrid& grid,
+        const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator) const {
 
         TermStructureFittingParameter phi(termStructure());
 
@@ -96,6 +98,13 @@ namespace QuantLib {
             impl->set(grid[i], value);
             // vMin = value - 10.0;
             // vMax = value + 10.0;
+        }
+        if (additionalResultCalculator) {
+            boost::shared_ptr<TreeCumulativeProbabilityCalculator1D> cumulativeProbCalculator =
+                boost::dynamic_pointer_cast<TreeCumulativeProbabilityCalculator1D>(additionalResultCalculator);
+            if (cumulativeProbCalculator) {
+                cumulativeProbCalculator->setTree(numericTree);
+            }
         }
         return numericTree;
     }
