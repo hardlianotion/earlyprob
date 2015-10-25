@@ -5806,6 +5806,22 @@
 				RelativePath="ql\pricingengines\mcsimulation.hpp"
 				>
 			</File>
+			<File
+				RelativePath="ql\pricingengines\additionalresultcalculators.cpp"
+				>
+			</File>
+			<File
+				RelativePath="ql\pricingengines\additionalresultcalculators.hpp"
+				>
+			</File>
+			<File
+				RelativePath="ql\pricingengines\treecumulativeprobabilitycalculator1d.cpp"
+				>
+			</File>
+			<File
+				RelativePath="ql\pricingengines\treecumulativeprobabilitycalculator1d.hpp"
+				>
+			</File>
 			<Filter
 				Name="asian"
 				>
