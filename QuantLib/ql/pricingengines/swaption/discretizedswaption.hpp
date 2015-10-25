@@ -36,7 +36,7 @@ namespace QuantLib {
                             const Date& referenceDate,
                             const DayCounter& dayCounter);
         void reset(Size size);
-		const std::vector<std::pair<bool, size_t> >& exerciseIndex() const;
+        const boost::shared_ptr<std::vector<std::pair<bool, size_t> > > exerciseIndex() const;
 		const std::vector<Date>& exerciseDates() const;
 	protected:
 		void applyExerciseCondition();
@@ -44,7 +44,7 @@ namespace QuantLib {
         Swaption::arguments arguments_;
         Time lastPayment_;
 		Array exerciseMargins_;
-		std::vector<std::pair<bool, size_t> > exerciseIndex_;
+		boost::shared_ptr<std::vector<std::pair<bool, size_t> > > exerciseIndex_;
     };
 
 }

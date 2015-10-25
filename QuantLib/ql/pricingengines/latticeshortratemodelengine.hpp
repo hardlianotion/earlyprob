@@ -96,7 +96,7 @@ namespace QuantLib {
     : GenericModelEngine<ShortRateModel, Arguments, Results>(model),
       timeGrid_(timeGrid), timeSteps_(0),
       additionalResultCalculator_(additionalResultCalculator) {
-        lattice_ = this->model_->tree(timeGrid);
+        lattice_ = this->model_->tree(timeGrid, additionalResultCalculator_);
     }
 
     template <class Arguments, class Results>

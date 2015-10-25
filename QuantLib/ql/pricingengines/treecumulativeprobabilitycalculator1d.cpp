@@ -39,11 +39,12 @@ namespace QuantLib{
 		}
 	}
 
-	void TreeCumulativeProbabilityCalculator1D::setExerciseIndex(const std::vector<std::pair<bool, size_t> >& exerciseIndex) {
+	void TreeCumulativeProbabilityCalculator1D::setExerciseIndex(const boost::shared_ptr<std::vector<std::pair<bool, size_t> > >& exerciseIndex) {
 		exerciseIndex_ = exerciseIndex;
 	}
 
 	void TreeCumulativeProbabilityCalculator1D::calculateAdditionalResults() {
+        computeCumulativeProbabilities();
 		std::map<Date, std::pair<double, double> > result;
 		
 		for (size_t i = 0; i < exerciseTimes_.size(); ++i) {
@@ -65,7 +66,7 @@ namespace QuantLib{
 		const TimeGrid& times = tree_->timeGrid();
 		std::stack<Size> exerciseTimeIndices;
 		for (size_t exerciseId = exerciseTimes_.size() - 1; exerciseId >= 0; --exerciseId) {
-			if (exerciseIndex_[exerciseId].first == true) {
+			if ((*exerciseIndex_)[exerciseId].first == true) {
 				exerciseTimeIndices.push(times.index(exerciseTimes_[exerciseId]));
 			}
 		}
@@ -78,7 +79,7 @@ namespace QuantLib{
 		for (Size timePt = 1; timePt < times.size(); ++timePt) {
 			Size priceIdCount = tree_->size(timePt);
 			if (timePt == exerciseTimeId) {
-				priceIdCount = exerciseIndex_[exerciseTimeId].second;
+				priceIdCount = (*exerciseIndex_)[exerciseTimeId].second;
 				if (!exerciseTimeIndices.empty()) {
 					exerciseTimeId = exerciseTimeIndices.top(); exerciseTimeIndices.pop();
 				}
@@ -102,9 +103,9 @@ namespace QuantLib{
 	}
 
 	std::pair<Real, Real> TreeCumulativeProbabilityCalculator1D::exerciseProbability(Time exerciseDate) {
-		QL_REQUIRE(!exerciseIndex_.empty(), "Index empty.  Must run pricing call before exerciseProbability().");
+		QL_REQUIRE(!exerciseIndex_->empty(), "Index empty.  Must run pricing call before exerciseProbability().");
 		Size exerciseDateId = tree_->timeGrid().index(exerciseDate);
-		const std::pair<bool, Size>& exercise = exerciseIndex_[exerciseDateId];
+		const std::pair<bool, Size>& exercise = (*exerciseIndex_)[exerciseDateId];
 		if (exercise.first == true) {
 			
 			return std::make_pair(1.0 - cumulativeProbs_[exerciseDateId][exercise.second].first, 0.0);

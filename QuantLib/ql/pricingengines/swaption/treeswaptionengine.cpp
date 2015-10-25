@@ -107,6 +107,7 @@ namespace QuantLib {
         swaption->rollback(nextExercise);
         results_.value = swaption->presentValue();
         if (additionalResultCalculator_) {
+            additionalResultCalculator_->calculateAdditionalResults();
             results_.additionalResults = additionalResultCalculator_->additionalResults();
         }
     }
