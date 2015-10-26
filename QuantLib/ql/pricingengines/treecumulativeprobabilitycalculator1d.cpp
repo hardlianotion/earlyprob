@@ -77,7 +77,7 @@ namespace QuantLib{
         cumulativeProbs_.clear();
 		cumulativeProbs_.push_back(std::vector<std::pair<Real, Real> >(1, std::make_pair(1.0, 1.0)));
 		std::vector<Size> exerciseLimits(times.size());
-		
+        exerciseLimits[0] = 1;
 		for (Size timePt = 1; timePt < times.size(); ++timePt) {
 			Size priceIdCount = tree_->size(timePt);
 			if (timePt == exerciseTimeAndLevel.first) {
