@@ -42,7 +42,7 @@ namespace QuantLib {
 
 		void setupDiscretizedAsset(const boost::shared_ptr<DiscretizedAsset>&);
 	private:
-		std::pair<Real, Real> exerciseProbability(Time exerciseDate);
+		std::pair<Real, Real> exerciseProbability(Size exerciseTimeId);
 		void computeCumulativeProbabilities();
 		boost::shared_ptr<OneFactorModel::ShortRateTree> tree_;
 		boost::shared_ptr<std::vector<std::pair<bool, size_t> > > exerciseIndex_;

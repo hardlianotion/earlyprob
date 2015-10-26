@@ -170,7 +170,7 @@ namespace QuantLib {
 		std::vector<Time> positiveExerciseTimes() const;
       protected:
         void postAdjustValuesImpl();
-        void applyExerciseCondition();
+        virtual void applyExerciseCondition();
         boost::shared_ptr<DiscretizedAsset> underlying_;
         Exercise::Type exerciseType_;
         std::vector<Time> exerciseTimes_;

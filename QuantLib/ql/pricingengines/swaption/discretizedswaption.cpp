@@ -102,7 +102,7 @@ namespace QuantLib {
 
 	void DiscretizedSwaption::applyExerciseCondition() {
 		std::pair<bool, size_t> exercised = std::make_pair(false, 0);
-
+        exerciseMargins_ = Array(values_.size());
 		for (Size i = 0; i < values_.size(); i++) {
 			values_[i] = std::max(underlying_->values()[i], values_[i]);
 			exerciseMargins_[i] = underlying_->values()[i] - values_[i];
