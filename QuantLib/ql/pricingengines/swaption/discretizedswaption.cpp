@@ -106,7 +106,7 @@ namespace QuantLib {
 		for (Size i = 0; i < values_.size(); i++) {
 			values_[i] = std::max(underlying_->values()[i], values_[i]);
 			exerciseMargins_[i] = underlying_->values()[i] - values_[i];
-			if (!exercised.first && exerciseMargins_[i] < 0.0) {
+			if (!exercised.first && exerciseMargins_[i] > 0.0) {
 				exercised.first = true;
 				exercised.second = i;
 				exerciseIndex_->push_back(exercised);
