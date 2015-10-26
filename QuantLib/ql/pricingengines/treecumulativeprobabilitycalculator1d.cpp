@@ -45,10 +45,10 @@ namespace QuantLib{
 
 	void TreeCumulativeProbabilityCalculator1D::calculateAdditionalResults() {
         computeCumulativeProbabilities();
-		std::map<Date, std::pair<double, double> > result;
+		boost::shared_ptr<std::map<Date, std::pair<double, double> > > result(new std::map<Date, std::pair<double, double> >);
 		
 		for (size_t exerciseTimeId = 0; exerciseTimeId < exerciseTimes_.size(); ++exerciseTimeId) {
-			result[exerciseDates_[exerciseTimeId]] = exerciseProbability(exerciseTimeId);
+			(*result)[exerciseDates_[exerciseTimeId]] = exerciseProbability(exerciseTimeId);
 		}
 
 		additionalResults_["ExerciseProbabilityAndSwapBoundary"] = result;
@@ -63,14 +63,19 @@ namespace QuantLib{
 	}
 	//This tree constructs the total probability, for each exercise date, that the option remains unexercised.
 	void TreeCumulativeProbabilityCalculator1D::computeCumulativeProbabilities() {
-        
+        //exercise events were collected back to front.
+        std::reverse(exerciseIndex_->begin(), exerciseIndex_->end());
+
 		const TimeGrid& times = tree_->timeGrid();
 		std::stack<std::pair<Integer, Size> > exerciseTimesAndLevels;
-		for (int exerciseId = static_cast<int>(exerciseTimes_.size()) - 1; exerciseId >= 0; --exerciseId) {
+
+        //FIXME - refactor to go the right way and pick a list instead of a stack to accumulate exercise event data
+        size_t lastExerciseId = exerciseIndex_->size() - 1;
+        for (Integer exerciseId = static_cast<int>(exerciseTimes_.size()) - 1; exerciseId >= 0; --exerciseId) {
             std::pair<bool, Size> exerciseLevel = (*exerciseIndex_)[exerciseId];
 			if (exerciseLevel.first == true) {
                 exerciseTimesAndLevels.push(
-                    std::make_pair(times.index(static_cast<int>(exerciseTimes_[exerciseId])), exerciseLevel.second));
+                    std::make_pair(static_cast<int>(times.index(exerciseTimes_[exerciseId])), exerciseLevel.second));
 			}
 		}
 		
@@ -80,7 +85,7 @@ namespace QuantLib{
         }
 
         cumulativeProbs_.clear();
-		cumulativeProbs_.push_back(std::vector<std::pair<Real, Real> >(1, std::make_pair(1.0, 1.0)));
+		cumulativeProbs_.push_back(std::vector<std::pair<Real, Real> >(1, std::make_pair(0.0, 1.0)));
 		std::vector<Size> exerciseLimits(times.size());
 
         exerciseLimits[0] = 1;
@@ -97,21 +102,35 @@ namespace QuantLib{
 		}
 		for (Size timePt = 0; timePt < times.size() - 1; ++timePt) {
 			Size priceIdCount = exerciseLimits[timePt];
-			
-			for (Size priceId = 0; priceId < priceIdCount; ++priceId) {
-				Real cumulant = 0.0;
+            //On each timestep, we are aggregating calculated probabilities over the vector of states
+            //for that timestep and calculating marginal probabilities for the next timestep.
+            cumulativeProbs_[timePt][0].first = cumulativeProbs_[timePt][0].second;
+            std::pair<Real, Real> parentProb = cumulativeProbs_[timePt][0];
+            for (Size nodeId = 0; nodeId < tree_->size(1); ++nodeId) {
+                if (tree_->descendant(timePt, 0, nodeId) < exerciseLimits[timePt + 1]) {
+                    double increment = tree_->probability(timePt, 0, nodeId)*parentProb.second;
+                    std::pair<Real, Real>& probabilityNode = cumulativeProbs_[timePt + 1][tree_->descendant(timePt, 0, nodeId)];
+                    probabilityNode.second += increment;
+                }
+            }
+			for (Size priceId = 1; priceId < priceIdCount; ++priceId) {
+				cumulativeProbs_[timePt][priceId].first = cumulativeProbs_[timePt][priceId].second + cumulativeProbs_[timePt][priceId-1].first;
 				std::pair<Real, Real> parentProb = cumulativeProbs_[timePt][priceId];
 				for (Size nodeId = 0; nodeId < tree_->size(1); ++nodeId) {
                     if (tree_->descendant(timePt, priceId, nodeId) < exerciseLimits[timePt + 1]) {
                         double increment = tree_->probability(timePt, priceId, nodeId)*parentProb.second;
-                        cumulant += increment;
                         std::pair<Real, Real>& probabilityNode = cumulativeProbs_[timePt + 1][tree_->descendant(timePt, priceId, nodeId)];
-                        probabilityNode.first += cumulant;
                         probabilityNode.second += increment;
                     }
 				}
 			}
 		}
+        //accumulate cumulative probabilities on the last timestep.
+        Size priceIdCount = exerciseLimits[times.size() - 1];
+        cumulativeProbs_[times.size() - 1][0].first = cumulativeProbs_[times.size() - 1][0].second;
+        for (Size priceId = 1; priceId < priceIdCount; ++priceId) {
+            cumulativeProbs_[times.size() - 1][priceId].first = cumulativeProbs_[times.size() - 1][priceId].second + cumulativeProbs_[times.size() - 1][priceId -1].first;
+        }
 	}
 
 	std::pair<Real, Real> TreeCumulativeProbabilityCalculator1D::exerciseProbability(Size exerciseTimeId) {

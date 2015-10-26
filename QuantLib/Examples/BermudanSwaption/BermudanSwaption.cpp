@@ -89,6 +89,30 @@ void calibrateModel(
     }
 }
 
+namespace {
+    void printExerciseProbabilities(std::ostream& out, const Swaption& swaption) {
+        typedef std::map<std::string, boost::any> result_map;
+        typedef std::map<Date, std::pair<double, double> > dated_prob_boundaries;
+        const result_map allResults = swaption.additionalResults();
+        
+        result_map::const_iterator result_ptr = allResults.find("ExerciseProbabilityAndSwapBoundary");
+        if (result_ptr != allResults.end()) {
+            const boost::shared_ptr<dated_prob_boundaries> datedProbBoundaries = 
+                boost::any_cast<boost::shared_ptr<dated_prob_boundaries> > (result_ptr->second);
+            out << "Exercise Probability";
+            for (
+                dated_prob_boundaries::const_iterator ptr = datedProbBoundaries->begin();
+                ptr != datedProbBoundaries->end();
+                ++ptr
+            ) {
+                std::pair<double, double> result = ptr->second;
+                out << "(" << ptr->first << ", " << result.first << ") ";
+            }
+            out << std::endl;
+        }
+    }
+}
+
 int main(int, char* []) {
 
     try {
@@ -287,6 +311,8 @@ int main(int, char* []) {
             bermudanSwaption.setPricingEngine(boost::shared_ptr<PricingEngine>(
                 new TreeSwaptionEngine(modelHW, 50, Handle<YieldTermStructure>(), resultCalculator)));
             std::cout << "HW (tree):      " << bermudanSwaption.NPV() << std::endl;
+            printExerciseProbabilities(std::cout, bermudanSwaption);
+
             bermudanSwaption.setPricingEngine(boost::shared_ptr<PricingEngine>(
                 new FdHullWhiteSwaptionEngine(modelHW)));
             std::cout << "HW (fdm) :      " << bermudanSwaption.NPV() << std::endl;
@@ -304,6 +330,7 @@ int main(int, char* []) {
             bermudanSwaption.setPricingEngine(boost::shared_ptr<PricingEngine>(
                 new TreeSwaptionEngine(modelBK, 50, Handle<YieldTermStructure>(), resultCalculator)));
             std::cout << "BK:             " << bermudanSwaption.NPV() << std::endl;
+            printExerciseProbabilities(std::cout, bermudanSwaption);
         }
 
         // OTM Bermudan swaption pricing
@@ -331,6 +358,7 @@ int main(int, char* []) {
                 new TreeSwaptionEngine(modelHW, 50, Handle<YieldTermStructure>(), resultCalculator)));
             std::cout << "HW (tree):       " << otmBermudanSwaption.NPV()
                 << std::endl;
+            printExerciseProbabilities(std::cout, otmBermudanSwaption);
             otmBermudanSwaption.setPricingEngine(boost::shared_ptr<PricingEngine>(
                 new FdHullWhiteSwaptionEngine(modelHW)));
             std::cout << "HW (fdm) :       " << otmBermudanSwaption.NPV()
@@ -352,6 +380,7 @@ int main(int, char* []) {
                 new TreeSwaptionEngine(modelBK, 50, Handle<YieldTermStructure>(), resultCalculator)));
             std::cout << "BK:              " << otmBermudanSwaption.NPV()
                 << std::endl;
+            printExerciseProbabilities(std::cout, otmBermudanSwaption);
         }
 
         // ITM Bermudan swaption pricing
@@ -379,6 +408,7 @@ int main(int, char* []) {
                 new TreeSwaptionEngine(modelHW, 50, Handle<YieldTermStructure>(), resultCalculator)));
             std::cout << "HW (tree):       " << itmBermudanSwaption.NPV()
                 << std::endl;
+            printExerciseProbabilities(std::cout, itmBermudanSwaption);
             itmBermudanSwaption.setPricingEngine(boost::shared_ptr<PricingEngine>(
                 new FdHullWhiteSwaptionEngine(modelHW)));
             std::cout << "HW (fdm) :       " << itmBermudanSwaption.NPV()
@@ -400,6 +430,7 @@ int main(int, char* []) {
                 new TreeSwaptionEngine(modelBK, 50, Handle<YieldTermStructure>(), resultCalculator)));
             std::cout << "BK:              " << itmBermudanSwaption.NPV()
                 << std::endl;
+            printExerciseProbabilities(std::cout, itmBermudanSwaption);
         }
         double seconds = timer.elapsed();
         Integer hours = int(seconds/3600);
