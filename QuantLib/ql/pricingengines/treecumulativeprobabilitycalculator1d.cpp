@@ -65,20 +65,26 @@ namespace QuantLib{
 	void TreeCumulativeProbabilityCalculator1D::computeCumulativeProbabilities() {
         
 		const TimeGrid& times = tree_->timeGrid();
-		std::stack<std::pair<Size, Size> > exerciseTimesAndLevels;
+		std::stack<std::pair<Integer, Size> > exerciseTimesAndLevels;
 		for (int exerciseId = static_cast<int>(exerciseTimes_.size()) - 1; exerciseId >= 0; --exerciseId) {
             std::pair<bool, Size> exerciseLevel = (*exerciseIndex_)[exerciseId];
 			if (exerciseLevel.first == true) {
-                exerciseTimesAndLevels.push(std::make_pair(times.index(exerciseTimes_[exerciseId]), exerciseLevel.second));
+                exerciseTimesAndLevels.push(
+                    std::make_pair(times.index(static_cast<int>(exerciseTimes_[exerciseId])), exerciseLevel.second));
 			}
 		}
 		
-        std::pair<Size, Size> exerciseTimeAndLevel = exerciseTimesAndLevels.top(); exerciseTimesAndLevels.pop();
+        std::pair<Integer, Size> exerciseTimeAndLevel = std::make_pair(-1, 0);
+        if (!exerciseTimesAndLevels.empty()) {
+            exerciseTimeAndLevel = exerciseTimesAndLevels.top(); exerciseTimesAndLevels.pop();
+        }
+
         cumulativeProbs_.clear();
 		cumulativeProbs_.push_back(std::vector<std::pair<Real, Real> >(1, std::make_pair(1.0, 1.0)));
 		std::vector<Size> exerciseLimits(times.size());
+
         exerciseLimits[0] = 1;
-		for (Size timePt = 1; timePt < times.size(); ++timePt) {
+		for (Integer timePt = 1; timePt < static_cast<Integer>(times.size()); ++timePt) {
 			Size priceIdCount = tree_->size(timePt);
 			if (timePt == exerciseTimeAndLevel.first) {
 				priceIdCount = exerciseTimeAndLevel.second + 1;
