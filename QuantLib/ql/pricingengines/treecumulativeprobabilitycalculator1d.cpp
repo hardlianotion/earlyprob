@@ -32,22 +32,23 @@ namespace QuantLib{
 			int negativeDateCount = static_cast<int>(tempExercised.size()) - exerciseTimes_.size();
 
 			QL_REQUIRE(negativeDateCount >= 0, "Exercise dates definition error.  The number of past exercise days should be positive by construction.");
-			exerciseDates_.reserve(tempExercised.size());
+			exerciseDates_.resize(tempExercised.size());
 			for (int i = tempExercised.size() - 1; i >= negativeDateCount; --i) {
 				exerciseDates_[i] = tempExercised[i - negativeDateCount];
 			}
 		}
 	}
 
-	void TreeCumulativeProbabilityCalculator1D::setExerciseIndex(const std::vector<std::pair<bool, size_t> >& exerciseIndex) {
+	void TreeCumulativeProbabilityCalculator1D::setExerciseIndex(const boost::shared_ptr<std::vector<std::pair<bool, size_t> > >& exerciseIndex) {
 		exerciseIndex_ = exerciseIndex;
 	}
 
 	void TreeCumulativeProbabilityCalculator1D::calculateAdditionalResults() {
+        computeCumulativeProbabilities();
 		std::map<Date, std::pair<double, double> > result;
 		
-		for (size_t i = 0; i < exerciseTimes_.size(); ++i) {
-			result[exerciseDates_[i]] = exerciseProbability(exerciseTimes_[i]);
+		for (size_t exerciseTimeId = 0; exerciseTimeId < exerciseTimes_.size(); ++exerciseTimeId) {
+			result[exerciseDates_[exerciseTimeId]] = exerciseProbability(exerciseTimeId);
 		}
 
 		additionalResults_["ExerciseProbabilityAndSwapBoundary"] = result;
@@ -62,51 +63,57 @@ namespace QuantLib{
 	}
 	//This tree constructs the total probability, for each exercise date, that the option remains unexercised.
 	void TreeCumulativeProbabilityCalculator1D::computeCumulativeProbabilities() {
+        
 		const TimeGrid& times = tree_->timeGrid();
-		std::stack<Size> exerciseTimeIndices;
-		for (size_t exerciseId = exerciseTimes_.size() - 1; exerciseId >= 0; --exerciseId) {
-			if (exerciseIndex_[exerciseId].first == true) {
-				exerciseTimeIndices.push(times.index(exerciseTimes_[exerciseId]));
+		std::stack<std::pair<Size, Size> > exerciseTimesAndLevels;
+		for (int exerciseId = static_cast<int>(exerciseTimes_.size()) - 1; exerciseId >= 0; --exerciseId) {
+            std::pair<bool, Size> exerciseLevel = (*exerciseIndex_)[exerciseId];
+			if (exerciseLevel.first == true) {
+                exerciseTimesAndLevels.push(std::make_pair(times.index(exerciseTimes_[exerciseId]), exerciseLevel.second));
 			}
 		}
 		
-		Size exerciseTimeId = exerciseTimeIndices.top(); exerciseTimeIndices.pop();
-
+        std::pair<Size, Size> exerciseTimeAndLevel = exerciseTimesAndLevels.top(); exerciseTimesAndLevels.pop();
+        cumulativeProbs_.clear();
 		cumulativeProbs_.push_back(std::vector<std::pair<Real, Real> >(1, std::make_pair(1.0, 1.0)));
 		std::vector<Size> exerciseLimits(times.size());
-		
+        exerciseLimits[0] = 1;
 		for (Size timePt = 1; timePt < times.size(); ++timePt) {
 			Size priceIdCount = tree_->size(timePt);
-			if (timePt == exerciseTimeId) {
-				priceIdCount = exerciseIndex_[exerciseTimeId].second;
-				if (!exerciseTimeIndices.empty()) {
-					exerciseTimeId = exerciseTimeIndices.top(); exerciseTimeIndices.pop();
+			if (timePt == exerciseTimeAndLevel.first) {
+				priceIdCount = exerciseTimeAndLevel.second + 1;
+				if (!exerciseTimesAndLevels.empty()) {
+                    exerciseTimeAndLevel = exerciseTimesAndLevels.top(); exerciseTimesAndLevels.pop();
 				}
 			}
 			exerciseLimits[timePt] = priceIdCount;
 			cumulativeProbs_.push_back(std::vector<std::pair<Real, Real> >(priceIdCount, std::make_pair(0.0, 0.0)));
 		}
-		for (Size timePt = 0; timePt < times.size(); ++timePt) {
+		for (Size timePt = 0; timePt < times.size() - 1; ++timePt) {
 			Size priceIdCount = exerciseLimits[timePt];
 			
 			for (Size priceId = 0; priceId < priceIdCount; ++priceId) {
 				Real cumulant = 0.0;
 				std::pair<Real, Real> parentProb = cumulativeProbs_[timePt][priceId];
 				for (Size nodeId = 0; nodeId < tree_->size(1); ++nodeId) {
-					double increment = tree_->probability(timePt, priceId, nodeId)*parentProb.second;
-					cumulant += increment;
-					cumulativeProbs_[timePt + 1][priceId] = std::make_pair(cumulant, increment);
+                    if (tree_->descendant(timePt, priceId, nodeId) < exerciseLimits[timePt + 1]) {
+                        double increment = tree_->probability(timePt, priceId, nodeId)*parentProb.second;
+                        cumulant += increment;
+                        std::pair<Real, Real>& probabilityNode = cumulativeProbs_[timePt + 1][tree_->descendant(timePt, priceId, nodeId)];
+                        probabilityNode.first += cumulant;
+                        probabilityNode.second += increment;
+                    }
 				}
 			}
 		}
 	}
 
-	std::pair<Real, Real> TreeCumulativeProbabilityCalculator1D::exerciseProbability(Time exerciseDate) {
-		QL_REQUIRE(!exerciseIndex_.empty(), "Index empty.  Must run pricing call before exerciseProbability().");
-		Size exerciseDateId = tree_->timeGrid().index(exerciseDate);
-		const std::pair<bool, Size>& exercise = exerciseIndex_[exerciseDateId];
+	std::pair<Real, Real> TreeCumulativeProbabilityCalculator1D::exerciseProbability(Size exerciseTimeId) {
+		QL_REQUIRE(!exerciseIndex_->empty(), "Index empty.  Must run pricing call before exerciseProbability().");
+		
+		const std::pair<bool, Size>& exercise = (*exerciseIndex_)[exerciseTimeId];
 		if (exercise.first == true) {
-			
+            Size exerciseDateId = tree_->timeGrid().index(exerciseTimes_[exerciseTimeId]);
 			return std::make_pair(1.0 - cumulativeProbs_[exerciseDateId][exercise.second].first, 0.0);
 		}
 		else {

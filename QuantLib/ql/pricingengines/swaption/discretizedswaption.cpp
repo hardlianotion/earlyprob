@@ -41,7 +41,7 @@ namespace QuantLib {
     : DiscretizedOption(boost::shared_ptr<DiscretizedAsset>(),
                         args.exercise->type(),
                         std::vector<Time>()),
-      arguments_(args) {
+      arguments_(args),exerciseIndex_(new std::vector<std::pair<bool, size_t> >) {
 
         exerciseTimes_.resize(arguments_.exercise->dates().size());
         for (Size i=0; i<exerciseTimes_.size(); ++i)
@@ -87,7 +87,7 @@ namespace QuantLib {
                                                                 dayCounter));
     }
 
-	const std::vector<std::pair<bool, size_t> >& DiscretizedSwaption::exerciseIndex() const {
+	const boost::shared_ptr<std::vector<std::pair<bool, size_t> > > DiscretizedSwaption::exerciseIndex() const {
 		return exerciseIndex_;
 	}
 
@@ -102,18 +102,18 @@ namespace QuantLib {
 
 	void DiscretizedSwaption::applyExerciseCondition() {
 		std::pair<bool, size_t> exercised = std::make_pair(false, 0);
-
+        exerciseMargins_ = Array(values_.size());
 		for (Size i = 0; i < values_.size(); i++) {
 			values_[i] = std::max(underlying_->values()[i], values_[i]);
 			exerciseMargins_[i] = underlying_->values()[i] - values_[i];
-			if (!exercised.first && exerciseMargins_[i] < 0.0) {
+			if (!exercised.first && exerciseMargins_[i] > 0.0) {
 				exercised.first = true;
 				exercised.second = i;
-				exerciseIndex_.push_back(exercised);
+				exerciseIndex_->push_back(exercised);
 			}
 		}
 		if (!exercised.first) {
-			exerciseIndex_.push_back(exercised);
+			exerciseIndex_->push_back(exercised);
 		}
 	}
 
