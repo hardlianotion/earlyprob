@@ -66,7 +66,7 @@ long QuantLibAddin::ObjectCount() {
     return reposit::Repository::instance().objectCount();
 }
 
-std::vector<QuantLib::Date> QuantLibAddin::temp1(const std::string &objectID) {
+std::vector<QuantLib::Date> QuantLibAddin::swapFixedLegAccrualStartDates(const std::string &objectID) {
     RP_GET_REFERENCE(swap, objectID, QuantLibAddin::VanillaSwap, QuantLib::VanillaSwap);
     std::vector<QuantLib::Date> ret;
     const std::vector<boost::shared_ptr<QuantLib::CashFlow> >& leg =
@@ -97,8 +97,6 @@ std::vector<QuantLib::Date> QuantLibAddin::swaptionExerciseDates(const std::stri
             ++ptr
         ) {
             ret.push_back(ptr->first);
-            //std::pair<double, double> result = ptr->second;
-            //out << "(" << ptr->first << ", " << result.first << ") ";
         }
     }
     return ret;
