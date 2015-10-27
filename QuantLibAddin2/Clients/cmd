@@ -1,5 +1,0 @@
-
-# Eric's cheat sheet to zip up the C# client demo
-
-git archive --output=CSharp.7z etuka CSharp
-

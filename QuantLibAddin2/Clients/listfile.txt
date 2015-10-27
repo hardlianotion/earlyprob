@@ -1,0 +1,13 @@
+CSharp/BermudanSwaption/BermudanSwaption_vc10.csproj
+CSharp/BermudanSwaption/Export.cs
+CSharp/BermudanSwaption/Program.cs
+CSharp/BermudanSwaption/Properties/AssemblyInfo.cs
+CSharp/bin/AddinCSharp-vc90-mt-s-1_7_0.dll
+CSharp/bin/AddinCSharp-vc90-x64-mt-s-1_7_0.dll
+CSharp/EquityOption/EquityOption_vc10.csproj
+CSharp/EquityOption/Export.cs
+CSharp/EquityOption/Program.cs
+CSharp/EquityOption/Properties
+CSharp/EquityOption/Properties/AssemblyInfo.cs
+CSharp/Examples_vc10.sln
+CSharp/Examples_vc10.suo
