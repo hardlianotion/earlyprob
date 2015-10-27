@@ -58,10 +58,12 @@
 %typemap(rp_tm_csh_args) QuantLib::Date const & "$1_name_cnv";
 
 %typemap(rp_tm_csh_rttp) std::vector<QuantLib::Date> "long *";
+%typemap(rp_tm_csh_rttp) QuantLib::Period "char *";
 
 %typemap(rp_tm_csh_parm) std::vector<QuantLib::Period> "long $1_name_length, char const* const*";
 
 %typemap(rp_tm_csh_rscp) std::vector<QuantLib::Date> "IntPtr";
+%typemap(rp_tm_csh_rscp) QuantLib::Period "string";
 
 %typemap(rp_tm_csh_clcp) std::vector<QuantLib::Period> "int $1_name_length, [MarshalAs(UnmanagedType.LPArray, ArraySubType=UnmanagedType.LPStr)] string[]";
 
@@ -110,5 +112,13 @@
         ret[0]=returnValue.size();
         for (unsigned int i=0;i<returnValue.size();i++)
             ret[i+1]=returnValue[i].serialNumber();
+        return ret;
+%}
+
+%typemap(rp_tm_csh_rtst) QuantLib::Period %{
+        std::string returnValueStr = QuantLibAddin::libraryToScalar(returnValue);
+        ULONG size = returnValue.length() + sizeof(char);
+        char *ret = (char*)::CoTaskMemAlloc(size);
+        strcpy(ret, returnValueStr.c_str());
         return ret;
 %}

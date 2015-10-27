@@ -21,6 +21,9 @@ namespace QuantLibAddin {
     %generate(c#, swapFixedLegAccrualStartDates);
     std::vector<QuantLib::Date> swapFixedLegAccrualStartDates(const std::string &s);
     
+    %generate(c#, swaptionExerciseDates);
     std::vector<QuantLib::Date> swaptionExerciseDates(const std::string &s);
+
+    %generate(c#, swaptionExerciseProbabilities);
     std::vector<double> swaptionExerciseProbabilities(const std::string &s);
 }

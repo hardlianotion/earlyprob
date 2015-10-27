@@ -25,6 +25,7 @@ namespace QuantLib {
     // FIXME this belongs in a separate group.
 	/*struct*/class TreeCumulativeProbabilityCalculator1D : public AdditionalResultCalculator {
       public:
+        %generate(c#, TreeCumulativeProbabilityCalculator1D);
 		TreeCumulativeProbabilityCalculator1D();
 	};
 	

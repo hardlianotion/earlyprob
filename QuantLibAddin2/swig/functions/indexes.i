@@ -100,6 +100,7 @@ namespace QuantLib {
             %generate(c#, dayCounter);
             const DayCounter& dayCounter();
             Date valueDate(const Date& fixingDate);
+            %generate(c#, tenor);
             Period tenor();
     };
 
