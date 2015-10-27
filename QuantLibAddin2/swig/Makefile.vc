@@ -11,7 +11,7 @@ BUILD_DIR=build\vc
 MAKEFILE=Makefile.vc
 SWIG_FILE=quantlib.i
 
-INTERFACE_FILES=functions\*.i typemaps\*.i
+INTERFACE_FILES=functions\*.i typedefs\*.i typemaps\*.i
 
 # This variable is set in the VC project properties.
 #SWIG_ARGS=-genxll -genc++ -genc#

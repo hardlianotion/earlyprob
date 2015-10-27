@@ -32,6 +32,9 @@
 #include <qlo/obj_vanillaswaps.hpp>//DELETEME
 #include <ql/cashflows/coupon.hpp>//DELETEME
 
+#include <map>
+#include <boost/any.hpp>
+
 //#if defined BOOST_MSVC       // Microsoft Visual C++
 //#  define BOOST_LIB_DIAGNOSTIC
 //#  include <ql/auto_link.hpp>
@@ -72,6 +75,55 @@ std::vector<QuantLib::Date> QuantLibAddin::temp1(const std::string &objectID) {
         boost::shared_ptr<QuantLib::Coupon> coupon =
             boost::dynamic_pointer_cast<QuantLib::Coupon>(leg[i]);
         ret.push_back(coupon->accrualStartDate());
+    }
+    return ret;
+}
+
+std::vector<QuantLib::Date> QuantLibAddin::swaptionExerciseDates(const std::string &objectID) {
+    RP_GET_REFERENCE(swaption, objectID, QuantLibAddin::Swaption, QuantLib::Swaption);
+    std::vector<QuantLib::Date> ret;
+
+    typedef std::map<std::string, boost::any> result_map;
+    typedef std::map<Date, std::pair<double, double> > dated_prob_boundaries;
+    const result_map allResults = swaption->additionalResults();
+    
+    result_map::const_iterator result_ptr = allResults.find("ExerciseProbabilityAndSwapBoundary");
+    if (result_ptr != allResults.end()) {
+        const boost::shared_ptr<dated_prob_boundaries> datedProbBoundaries = 
+            boost::any_cast<boost::shared_ptr<dated_prob_boundaries> > (result_ptr->second);
+        for (
+            dated_prob_boundaries::const_iterator ptr = datedProbBoundaries->begin();
+            ptr != datedProbBoundaries->end();
+            ++ptr
+        ) {
+            ret.push_back(ptr->first);
+            //std::pair<double, double> result = ptr->second;
+            //out << "(" << ptr->first << ", " << result.first << ") ";
+        }
+    }
+    return ret;
+}
+
+std::vector<double> QuantLibAddin::swaptionExerciseProbabilities(const std::string &objectID) {
+    RP_GET_REFERENCE(swaption, objectID, QuantLibAddin::Swaption, QuantLib::Swaption);
+    std::vector<double> ret;
+
+    typedef std::map<std::string, boost::any> result_map;
+    typedef std::map<Date, std::pair<double, double> > dated_prob_boundaries;
+    const result_map allResults = swaption->additionalResults();
+    
+    result_map::const_iterator result_ptr = allResults.find("ExerciseProbabilityAndSwapBoundary");
+    if (result_ptr != allResults.end()) {
+        const boost::shared_ptr<dated_prob_boundaries> datedProbBoundaries = 
+            boost::any_cast<boost::shared_ptr<dated_prob_boundaries> > (result_ptr->second);
+        for (
+            dated_prob_boundaries::const_iterator ptr = datedProbBoundaries->begin();
+            ptr != datedProbBoundaries->end();
+            ++ptr
+        ) {
+            std::pair<double, double> result = ptr->second;
+            ret.push_back(result.first);
+        }
     }
     return ret;
 }
