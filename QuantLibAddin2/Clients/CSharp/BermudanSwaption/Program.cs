@@ -354,6 +354,8 @@ namespace BermudanSwaption
                     QuantLibAddin.Export.qlInstrumentNPV(
                         Trigger, bermudanSwaptionID));
 
+                // Exercise probabilities
+
                 IntPtr exerciseDatesPtr = QuantLibAddin.Export.qlSwaptionExerciseDates(
                     bermudanSwaptionID);
                 int[] exerciseDates = intPtrToIntArray(exerciseDatesPtr);
