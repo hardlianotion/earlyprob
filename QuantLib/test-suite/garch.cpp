@@ -28,6 +28,7 @@
 
 using namespace QuantLib;
 namespace utf = boost::unit_test_framework;
+using boost::unit_test_framework::test_suite;
 
 namespace {
 
