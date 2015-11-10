@@ -27,8 +27,11 @@
 #include <ql/math/distributions/normaldistribution.hpp>
 
 using namespace QuantLib;
+
 namespace utf = boost::unit_test_framework;
 using boost::unit_test_framework::test_suite;
+
+using utf::test_suite;
 
 namespace {
 

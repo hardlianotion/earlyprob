@@ -26,34 +26,35 @@ namespace QuantLib {
                                      const Date& referenceDate,
                                      const DayCounter& dayCounter)
     : arguments_(args) {
+        
 
         fixedResetTimes_.resize(args.fixedResetDates.size());
-        for (Size i=0; i<fixedResetTimes_.size(); ++i)
+        for (Size i= 0; i<args.fixedResetDates.size(); ++i)
             fixedResetTimes_[i] =
                 dayCounter.yearFraction(referenceDate,
                                         args.fixedResetDates[i]);
 
         fixedPayTimes_.resize(args.fixedPayDates.size());
-        for (Size i=0; i<fixedPayTimes_.size(); ++i)
+        for (Size i= 0; i<args.fixedPayDates.size(); ++i)
             fixedPayTimes_[i] =
                 dayCounter.yearFraction(referenceDate,
                                         args.fixedPayDates[i]);
 
         floatingResetTimes_.resize(args.floatingResetDates.size());
-        for (Size i=0; i<floatingResetTimes_.size(); ++i)
+        for (Size i= 0; i<args.floatingResetDates.size(); ++i)
             floatingResetTimes_[i] =
                 dayCounter.yearFraction(referenceDate,
                                         args.floatingResetDates[i]);
 
         floatingPayTimes_.resize(args.floatingPayDates.size());
-        for (Size i=0; i<floatingPayTimes_.size(); ++i)
+        for (Size i= 0; i<args.floatingPayDates.size(); ++i)
             floatingPayTimes_[i] =
                 dayCounter.yearFraction(referenceDate,
                                         args.floatingPayDates[i]);
     }
 
     void DiscretizedSwap::reset(Size size) {
-        values_ = Array(size, 0.0);
+        values_ = fixedValues_ = floatingValues_ = Array(size, 0.0);
         adjustValues();
     }
 
@@ -82,11 +83,16 @@ namespace QuantLib {
         return times;
     }
 
-    void DiscretizedSwap::preAdjustValuesImpl() {
+    Real DiscretizedSwap::impliedSwapRate(Time t, Integer stateId) const {
+        Real payerWeight = (arguments_.type == VanillaSwap::Payer) ? 1.0: -1.0;
+        return payerWeight * (floatingValues_[stateId] - fixedValues_[stateId]);
+    }
+
+    void DiscretizedSwap::preAdjustValuesImpl(Time t) {
         // floating payments
         for (Size i=0; i<floatingResetTimes_.size(); i++) {
             Time t = floatingResetTimes_[i];
-            if (t >= 0.0 && isOnTime(t)) {
+            if (t >= std::max(0.0, t) && isOnTime(t)) {
                 DiscretizedDiscountBond bond;
                 bond.initialize(method(), floatingPayTimes_[i]);
                 bond.rollback(time_);
@@ -98,17 +104,14 @@ namespace QuantLib {
                 for (Size j=0; j<values_.size(); j++) {
                     Real coupon = nominal * (1.0 - bond.values()[j])
                                 + accruedSpread * bond.values()[j];
-                    if (arguments_.type == VanillaSwap::Payer)
-                        values_[j] += coupon;
-                    else
-                        values_[j] -= coupon;
+                    floatingValues_[j] += coupon;
                 }
             }
         }
         // fixed payments
         for (Size i=0; i<fixedResetTimes_.size(); i++) {
             Time t = fixedResetTimes_[i];
-            if (t >= 0.0 && isOnTime(t)) {
+            if (t >= std::max(0.0, t) && isOnTime(t)) {
                 DiscretizedDiscountBond bond;
                 bond.initialize(method(), fixedPayTimes_[i]);
                 bond.rollback(time_);
@@ -116,16 +119,14 @@ namespace QuantLib {
                 Real fixedCoupon = arguments_.fixedCoupons[i];
                 for (Size j=0; j<values_.size(); j++) {
                     Real coupon = fixedCoupon*bond.values()[j];
-                    if (arguments_.type == VanillaSwap::Payer)
-                        values_[j] -= coupon;
-                    else
-                        values_[j] += coupon;
+                    fixedValues_[j] += coupon;
                 }
             }
         }
+        values_ = (arguments_.type == VanillaSwap::Payer) ? floatingValues_ - fixedValues_ : fixedValues_ - floatingValues_;
     }
 
-    void DiscretizedSwap::postAdjustValuesImpl() {
+    void DiscretizedSwap::postAdjustValuesImpl(Time entryTime) {
         // fixed coupons whose reset time is in the past won't be managed
         // in preAdjustValues()
         for (Size i=0; i<fixedPayTimes_.size(); i++) {
@@ -133,10 +134,7 @@ namespace QuantLib {
             Time reset = fixedResetTimes_[i];
             if (t >= 0.0 && isOnTime(t) && reset < 0.0) {
                 Real fixedCoupon = arguments_.fixedCoupons[i];
-                if (arguments_.type==VanillaSwap::Payer)
-                    values_ -= fixedCoupon;
-                else
-                    values_ += fixedCoupon;
+                fixedValues_ += fixedCoupon;
             }
         }
         // the same applies to floating payments whose rate is already fixed
@@ -147,12 +145,10 @@ namespace QuantLib {
                 Real currentFloatingCoupon = arguments_.floatingCoupons[i];
                 QL_REQUIRE(currentFloatingCoupon != Null<Real>(),
                            "current floating coupon not given");
-                if (arguments_.type == VanillaSwap::Payer)
-                    values_ += currentFloatingCoupon;
-                else
-                    values_ -= currentFloatingCoupon;
+                floatingValues_ += currentFloatingCoupon;
             }
         }
+        values_ = (arguments_.type == VanillaSwap::Payer) ? floatingValues_ - fixedValues_ : fixedValues_ - floatingValues_;
     }
 
 }

@@ -111,17 +111,21 @@ namespace {
         if (result_ptr != allResults.end()) {
             const boost::shared_ptr<dated_prob_boundaries> datedProbBoundaries = 
                 boost::any_cast<boost::shared_ptr<dated_prob_boundaries> > (result_ptr->second);
-            out << "Exercise Probability";
+            out << "Dated Exercise Probability and Implied Swap Rate";
             for (
                 dated_prob_boundaries::const_iterator ptr = datedProbBoundaries->begin();
                 ptr != datedProbBoundaries->end();
                 ++ptr
             ) {
                 std::pair<double, double> result = ptr->second;
-                out << "(" << ptr->first << ", " << result.first << ") ";
+                out << "(" << ptr->first << ", prob = " << result.first << ", implied rate = " <<  result.second << ") ";
             }
             out << std::endl;
         }
+    }
+
+    void printGreeks(std::ostream& out, const Swaption& swaption) {
+         //Greeks not implemented in TreeSwaptionEngine (or any of the tree engines - can this really be true?)
     }
 }
 

@@ -47,6 +47,11 @@ namespace QuantLib {
         const Array& values() const { return values_; }
         Array& values() { return values_; }
 
+        const Array& cachedValues() const { return cachedValues_; }
+        Array& cachedValues() { return cachedValues_; }
+
+        void resetCachedValues(const Array& values) { cachedValues_ = values; }
+
         const boost::shared_ptr<Lattice>& method() const {
             return method_;
         }
@@ -87,6 +92,7 @@ namespace QuantLib {
         */
         virtual void reset(Size size) = 0;
 
+
         /*! This method will be invoked after rollback and before any
             other asset (i.e., an option on this one) has any chance to
             look at the values. For instance, payments happening at times
@@ -95,7 +101,7 @@ namespace QuantLib {
             This method is not virtual; derived classes must override
             the protected preAdjustValuesImpl() method instead.
         */
-        void preAdjustValues();
+        void preAdjustValues(Time t = 0.0);
 
         /*! This method will be invoked after rollback and after any
             other asset had their chance to look at the values. For
@@ -106,7 +112,7 @@ namespace QuantLib {
             This method is not virtual; derived classes must override
             the protected postAdjustValuesImpl() method instead.
         */
-        void postAdjustValues();
+        void postAdjustValues(Time t = 0.);
 
         /*! This method performs both pre- and post-adjustment */
         void adjustValues() {
@@ -127,13 +133,14 @@ namespace QuantLib {
             given time. */
         bool isOnTime(Time t) const;
         /*! This method performs the actual pre-adjustment */
-        virtual void preAdjustValuesImpl() {}
+        virtual void preAdjustValuesImpl(Time) {}
         /*! This method performs the actual post-adjustment */
-        virtual void postAdjustValuesImpl() {}
+        virtual void postAdjustValuesImpl(Time) {}
 
         Time time_;
         Time latestPreAdjustment_, latestPostAdjustment_;
         Array values_;
+        Array cachedValues_;
       private:
         boost::shared_ptr<Lattice> method_;
     };
@@ -169,8 +176,8 @@ namespace QuantLib {
         std::vector<Time> mandatoryTimes() const;
 		std::vector<Time> positiveExerciseTimes() const;
       protected:
-        void postAdjustValuesImpl();
-        virtual void applyExerciseCondition();
+        void postAdjustValuesImpl(Time );
+        virtual void applyExerciseCondition(Time exerciseTime);
         boost::shared_ptr<DiscretizedAsset> underlying_;
         Exercise::Type exerciseType_;
         std::vector<Time> exerciseTimes_;
@@ -199,16 +206,16 @@ namespace QuantLib {
         return method_->presentValue(*this);
     }
 
-    inline void DiscretizedAsset::preAdjustValues() {
+    inline void DiscretizedAsset::preAdjustValues(Time t) {
         if (!close_enough(time(),latestPreAdjustment_)) {
-            preAdjustValuesImpl();
+            preAdjustValuesImpl(t);
             latestPreAdjustment_ = time();
         }
     }
 
-    inline void DiscretizedAsset::postAdjustValues() {
+    inline void DiscretizedAsset::postAdjustValues(Time t) {
         if (!close_enough(time(),latestPostAdjustment_)) {
-            postAdjustValuesImpl();
+            postAdjustValuesImpl(t);
             latestPostAdjustment_ = time();
         }
     }
@@ -238,13 +245,7 @@ namespace QuantLib {
         return times;
     }
 
-    inline void DiscretizedOption::applyExerciseCondition() {
-        for (Size i=0; i<values_.size(); i++)
-            values_[i] = std::max(underlying_->values()[i], values_[i]);
-    }
-
-
 }
 
 
-#endif
+#endif //quantlib_discretized_asset_hpp

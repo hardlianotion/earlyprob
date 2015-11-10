@@ -41,7 +41,7 @@ namespace QuantLib {
     : DiscretizedOption(boost::shared_ptr<DiscretizedAsset>(),
                         args.exercise->type(),
                         std::vector<Time>()),
-      arguments_(args),exerciseIndex_(new std::vector<std::pair<bool, size_t> >) {
+      arguments_(args),exerciseIndex_(new std::vector<std::pair<bool, std::pair<Size, Real> > >) {
 
         exerciseTimes_.resize(arguments_.exercise->dates().size());
         for (Size i=0; i<exerciseTimes_.size(); ++i)
@@ -85,9 +85,11 @@ namespace QuantLib {
                                             new DiscretizedSwap(arguments_,
                                                                 referenceDate,
                                                                 dayCounter));
+        underlyingAsSwap_ = boost::dynamic_pointer_cast<DiscretizedSwap>(underlying_);
+        QL_REQUIRE(underlyingAsSwap_ != nullptr, "Underlying must be a DiscreteSwap object.");
     }
 
-	const boost::shared_ptr<std::vector<std::pair<bool, size_t> > > DiscretizedSwaption::exerciseIndex() const {
+	const boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > > DiscretizedSwaption::exerciseIndex() const {
 		return exerciseIndex_;
 	}
 
@@ -100,15 +102,49 @@ namespace QuantLib {
 		return arguments_.exercise->dates();
 	}
 
-	void DiscretizedSwaption::applyExerciseCondition() {
-		std::pair<bool, size_t> exercised = std::make_pair(false, 0);
+    void DiscretizedSwaption::postAdjustValuesImpl(Time t) {
+        /* In the real world, with time flowing forward, first
+        any payment is settled and only after options can be
+        exercised. Here, with time flowing backward, options
+        must be exercised before performing the adjustment.
+        */
+        underlying_->partialRollback(time());
+        underlying_->resetCachedValues(underlying_->values());
+        Size i;
+        switch (exerciseType_) {
+        case Exercise::American:
+            if (time_ >= exerciseTimes_[0] && time_ <= exerciseTimes_[1]) {
+                underlying_->values() = cachedValues();
+                underlying_->preAdjustValues(t);
+                applyExerciseCondition(t);
+            }
+            break;
+        case Exercise::Bermudan:
+        case Exercise::European:
+            for (i = 0; i<exerciseTimes_.size(); i++) {
+                if (t >= 0.0 && isOnTime(t)) {
+                    Time t = exerciseTimes_[i];
+                    underlying_->values() = cachedValues();
+                    underlying_->preAdjustValues(t);
+                    applyExerciseCondition(t);
+                }
+            }
+            break;
+        default:
+            QL_FAIL("invalid exercise type");
+        }
+        underlying_->postAdjustValues();
+    }
+
+	void DiscretizedSwaption::applyExerciseCondition(Time exerciseTime) {
+		std::pair<bool, std::pair<size_t, double> > exercised = std::make_pair(false, std::make_pair(0, 0.0) );
         exerciseMargins_ = Array(values_.size());
 		for (Size i = 0; i < values_.size(); i++) {
-			exerciseMargins_[i] = underlying_->values()[i] - values_[i];
-            values_[i] = std::max(underlying_->values()[i], values_[i]);
+			exerciseMargins_[i] = underlyingAsSwap_->values()[i] - values_[i];
+            values_[i] = std::max(underlyingAsSwap_->values()[i], values_[i]);
 			if (!exercised.first && exerciseMargins_[i] > 0.0) {
 				exercised.first = true;
-				exercised.second = i;
+				exercised.second = std::make_pair(i, underlyingAsSwap_->impliedSwapRate(exerciseTime, i));
 				exerciseIndex_->push_back(exercised);
 			}
 		}

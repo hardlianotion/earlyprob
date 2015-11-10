@@ -3996,6 +3996,7 @@
     </ClInclude>
     <ClInclude Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.hpp">
       <Filter>pricingengines</Filter>
+     </ClInclude>
     <ClInclude Include="ql\math\polynomialmathfunction.hpp">
       <Filter>math</Filter>
     </ClInclude>
@@ -6448,11 +6449,13 @@
     <ClCompile Include="ql\instruments\futures.cpp">
       <Filter>instruments</Filter>
     </ClCompile>
+
     <ClCompile Include="ql\pricingengines\additionalresultcalculators.cpp">
       <Filter>pricingengines</Filter>
     </ClCompile>
     <ClCompile Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.cpp">
       <Filter>pricingengines</Filter>
+    </ClCompile>
     <ClCompile Include="ql\math\polynomialmathfunction.cpp">
       <Filter>math</Filter>
     </ClCompile>
@@ -6467,6 +6470,22 @@
     </ClCompile>
     <ClCompile Include="ql\models\shortrate\onefactormodels\markovfunctional.cpp">
       <Filter>models\shortrate\onefactormodels</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\math\polynomialmathfunction.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\math\pascaltriangle.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.cpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\models\shortrate\onefactormodels\gsr.cpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\models\shortrate\onefactormodels\markovfunctional.cpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+
     </ClCompile>
   </ItemGroup>
 </Project>

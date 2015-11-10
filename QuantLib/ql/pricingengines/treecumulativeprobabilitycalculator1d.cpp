@@ -39,7 +39,7 @@ namespace QuantLib{
 		}
 	}
 
-	void TreeCumulativeProbabilityCalculator1D::setExerciseIndex(const boost::shared_ptr<std::vector<std::pair<bool, size_t> > >& exerciseIndex) {
+	void TreeCumulativeProbabilityCalculator1D::setExerciseIndex(const boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > >& exerciseIndex) {
 		exerciseIndex_ = exerciseIndex;
 	}
 
@@ -72,10 +72,10 @@ namespace QuantLib{
         //FIXME - refactor to go the right way and pick a list instead of a stack to accumulate exercise event data
         size_t lastExerciseId = exerciseIndex_->size() - 1;
         for (Integer exerciseId = static_cast<int>(exerciseTimes_.size()) - 1; exerciseId >= 0; --exerciseId) {
-            std::pair<bool, Size> exerciseLevel = (*exerciseIndex_)[exerciseId];
+            std::pair<bool, std::pair<Size, Real> > exerciseLevel = (*exerciseIndex_)[exerciseId];
 			if (exerciseLevel.first == true) {
                 exerciseTimesAndLevels.push(
-                    std::make_pair(static_cast<int>(times.index(exerciseTimes_[exerciseId])), exerciseLevel.second));
+                    std::make_pair(static_cast<int>(times.index(exerciseTimes_[exerciseId])), exerciseLevel.second.first));
 			}
 		}
 		
@@ -136,10 +136,10 @@ namespace QuantLib{
 	std::pair<Real, Real> TreeCumulativeProbabilityCalculator1D::exerciseProbability(Size exerciseTimeId) {
 		QL_REQUIRE(!exerciseIndex_->empty(), "Index empty.  Must run pricing call before exerciseProbability().");
 		
-		const std::pair<bool, Size>& exercise = (*exerciseIndex_)[exerciseTimeId];
+		const std::pair<bool, std::pair<Size, Real> >& exercise = (*exerciseIndex_)[exerciseTimeId];
 		if (exercise.first == true) {
             Size exerciseDateId = tree_->timeGrid().index(exerciseTimes_[exerciseTimeId]);
-			return std::make_pair(1.0 - cumulativeProbs_[exerciseDateId][exercise.second].first, 0.0);
+			return std::make_pair(1.0 - cumulativeProbs_[exerciseDateId][exercise.second.first].first, exercise.second.second);
 		}
 		else {
 			return std::make_pair(0.0, std::numeric_limits<double>::quiet_NaN());

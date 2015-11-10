@@ -22,7 +22,7 @@
 
 namespace QuantLib {
 
-    void DiscretizedOption::postAdjustValuesImpl() {
+    void DiscretizedOption::postAdjustValuesImpl(Time) {
         /* In the real world, with time flowing forward, first
            any payment is settled and only after options can be
            exercised. Here, with time flowing backward, options
@@ -34,14 +34,14 @@ namespace QuantLib {
         switch (exerciseType_) {
           case Exercise::American:
             if (time_ >= exerciseTimes_[0] && time_ <= exerciseTimes_[1])
-                applyExerciseCondition();
+                applyExerciseCondition(time_);
             break;
           case Exercise::Bermudan:
           case Exercise::European:
             for (i=0; i<exerciseTimes_.size(); i++) {
                 Time t = exerciseTimes_[i];
                 if (t >= 0.0 && isOnTime(t))
-                    applyExerciseCondition();
+                    applyExerciseCondition(t);
             }
             break;
           default:
@@ -58,6 +58,11 @@ namespace QuantLib {
 
 		return result;
 	}
+
+    void DiscretizedOption::applyExerciseCondition(Time) {
+        for (Size i = 0; i<values_.size(); i++)
+            values_[i] = std::max(underlying_->values()[i], values_[i]);
+    }
 
 }
 

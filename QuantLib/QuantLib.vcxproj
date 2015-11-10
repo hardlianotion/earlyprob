@@ -481,6 +481,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+
     <ClInclude Include="ql\pricingengines\additionalresultcalculators.hpp" />
     <ClInclude Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.hpp" />
     <ClInclude Include="ql\math\polynomialmathfunction.hpp" />
