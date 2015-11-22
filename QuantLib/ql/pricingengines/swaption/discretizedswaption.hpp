@@ -39,7 +39,7 @@ namespace QuantLib {
         const boost::shared_ptr<std::vector<std::pair<bool, size_t> > > exerciseIndex() const;
 		const std::vector<Date>& exerciseDates() const;
 	protected:
-		void applyExerciseCondition();
+		void applyExerciseCondition(Time = 0);
       private:
         Swaption::arguments arguments_;
         Time lastPayment_;

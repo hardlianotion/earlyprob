@@ -100,7 +100,7 @@ namespace QuantLib {
 		return arguments_.exercise->dates();
 	}
 
-	void DiscretizedSwaption::applyExerciseCondition() {
+	void DiscretizedSwaption::applyExerciseCondition(Time) {
 		std::pair<bool, size_t> exercised = std::make_pair(false, 0);
         exerciseMargins_ = Array(values_.size());
 		for (Size i = 0; i < values_.size(); i++) {
