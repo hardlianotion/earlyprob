@@ -35,6 +35,7 @@ namespace QuantLib {
         DiscretizedSwap(const VanillaSwap::arguments&,
                         const Date& referenceDate,
                         const DayCounter& dayCounter);
+        Real impliedSwapRate(Time t, Integer stateId) const;
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
       protected:

@@ -32,7 +32,7 @@ namespace QuantLib {
 
 	struct TreeCumulativeProbabilityCalculator1D : AdditionalResultCalculator {
 
-		void setExerciseIndex(const boost::shared_ptr<std::vector<std::pair<bool, size_t> > >& exerciseIndex);
+        void setExerciseIndex(const boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > >& exerciseIndex);
 
 		void calculateAdditionalResults();
 
@@ -45,7 +45,7 @@ namespace QuantLib {
 		std::pair<Real, Real> exerciseProbability(Size exerciseTimeId);
 		void computeCumulativeProbabilities();
 		boost::shared_ptr<OneFactorModel::ShortRateTree> tree_;
-		boost::shared_ptr<std::vector<std::pair<bool, size_t> > > exerciseIndex_;
+		boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > > exerciseIndex_;
 		std::vector<Time> exerciseTimes_;
 		std::vector<Date> exerciseDates_;
 		std::vector<std::vector<std::pair<Real, Real> > > cumulativeProbs_;

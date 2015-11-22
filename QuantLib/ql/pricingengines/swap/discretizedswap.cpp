@@ -22,6 +22,12 @@
 
 namespace QuantLib {
 
+    Real DiscretizedSwap::impliedSwapRate(Time t, Integer stateId) const {
+        Real payerWeight = (arguments_.type == VanillaSwap::Payer) ? 1.0 : -1.0;
+        return 0.0;
+        //return payerWeight * floatingValues_[stateId] / fixedValues_[stateId];
+    }
+
     DiscretizedSwap::DiscretizedSwap(const VanillaSwap::arguments& args,
                                      const Date& referenceDate,
                                      const DayCounter& dayCounter)
