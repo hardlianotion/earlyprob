@@ -38,8 +38,8 @@ namespace QuantLib {
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
       protected:
-        void preAdjustValuesImpl();
-        void postAdjustValuesImpl();
+        void preAdjustValuesImpl(Time = 0);
+        void postAdjustValuesImpl(Time = 0);
       private:
         VanillaSwap::arguments arguments_;
         std::vector<Time> fixedResetTimes_;

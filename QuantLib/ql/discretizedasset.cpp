@@ -22,7 +22,7 @@
 
 namespace QuantLib {
 
-    void DiscretizedOption::postAdjustValuesImpl() {
+    void DiscretizedOption::postAdjustValuesImpl(Time ) {
         /* In the real world, with time flowing forward, first
            any payment is settled and only after options can be
            exercised. Here, with time flowing backward, options

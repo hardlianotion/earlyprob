@@ -82,7 +82,7 @@ namespace QuantLib {
         return times;
     }
 
-    void DiscretizedSwap::preAdjustValuesImpl() {
+    void DiscretizedSwap::preAdjustValuesImpl(Time) {
         // floating payments
         for (Size i=0; i<floatingResetTimes_.size(); i++) {
             Time t = floatingResetTimes_[i];
@@ -125,7 +125,7 @@ namespace QuantLib {
         }
     }
 
-    void DiscretizedSwap::postAdjustValuesImpl() {
+    void DiscretizedSwap::postAdjustValuesImpl(Time ) {
         // fixed coupons whose reset time is in the past won't be managed
         // in preAdjustValues()
         for (Size i=0; i<fixedPayTimes_.size(); i++) {

@@ -63,7 +63,7 @@ namespace QuantLib {
         }
 
       protected:
-        void postAdjustValuesImpl();
+        void postAdjustValuesImpl(Time = 0);
         Array conversionProbability_, spreadAdjustedRate_, dividendValues_;
 
       private:

@@ -127,9 +127,9 @@ namespace QuantLib {
             given time. */
         bool isOnTime(Time t) const;
         /*! This method performs the actual pre-adjustment */
-        virtual void preAdjustValuesImpl() {}
+        virtual void preAdjustValuesImpl(Time = 0) {}
         /*! This method performs the actual post-adjustment */
-        virtual void postAdjustValuesImpl() {}
+        virtual void postAdjustValuesImpl(Time = 0) {}
 
         Time time_;
         Time latestPreAdjustment_, latestPostAdjustment_;
@@ -169,7 +169,7 @@ namespace QuantLib {
         std::vector<Time> mandatoryTimes() const;
 		std::vector<Time> positiveExerciseTimes() const;
       protected:
-        void postAdjustValuesImpl();
+        void postAdjustValuesImpl(Time);
         virtual void applyExerciseCondition();
         boost::shared_ptr<DiscretizedAsset> underlying_;
         Exercise::Type exerciseType_;

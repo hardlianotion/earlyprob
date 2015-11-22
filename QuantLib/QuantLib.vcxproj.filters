@@ -3996,6 +3996,7 @@
     </ClInclude>
     <ClInclude Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.hpp">
       <Filter>pricingengines</Filter>
+    </ClInclude>
     <ClInclude Include="ql\math\polynomialmathfunction.hpp">
       <Filter>math</Filter>
     </ClInclude>
@@ -6453,6 +6454,7 @@
     </ClCompile>
     <ClCompile Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.cpp">
       <Filter>pricingengines</Filter>
+    </ClCompile>
     <ClCompile Include="ql\math\polynomialmathfunction.cpp">
       <Filter>math</Filter>
     </ClCompile>
