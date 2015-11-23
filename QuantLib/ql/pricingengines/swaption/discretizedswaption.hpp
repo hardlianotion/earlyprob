@@ -40,13 +40,15 @@ namespace QuantLib {
         const boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > > exerciseIndex() const;
 		const std::vector<Date>& exerciseDates() const;
 	protected:
+        void postAdjustValuesImpl(Time);
 		void applyExerciseCondition(Time exerciseTime);
       private:
         Swaption::arguments arguments_;
         Time lastPayment_;
 		Array exerciseMargins_;
+        Size exerciseIdx_;
         boost::shared_ptr<std::vector<std::pair<bool, std::pair<size_t, Real> > > > exerciseIndex_;
-        boost::shared_ptr<DiscretizedSwap> underlyingAsSwap_;
+        boost::shared_ptr<DiscretizedCoterminalSwapStrip> underlyingAsSwapStrip_;
     };
 
 }

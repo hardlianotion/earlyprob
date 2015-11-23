@@ -19,7 +19,7 @@
 */
 
 #include <ql/pricingengines/swaption/discretizedswaption.hpp>
-#include <ql/pricingengines/swap/discretizedswap.hpp>
+#include <ql/pricingengines/swap/discretizedcoterminalswapstrip.hpp>
 
 namespace QuantLib {
 
@@ -82,11 +82,11 @@ namespace QuantLib {
         lastPayment_ = std::max(lastFixedPayment,lastFloatingPayment);
 
         underlying_ = boost::shared_ptr<DiscretizedAsset>(
-                                            new DiscretizedSwap(arguments_,
+                                            new DiscretizedCoterminalSwapStrip(arguments_,
                                                                 referenceDate,
-                                                                dayCounter));
-        underlyingAsSwap_ = boost::dynamic_pointer_cast<DiscretizedSwap>(underlying_);
-        QL_REQUIRE(underlyingAsSwap_ != nullptr, "Underlying must be a DiscreteSwap object.");
+                                                                dayCounter, arguments_.exercise->dates()));
+        underlyingAsSwapStrip_ = boost::dynamic_pointer_cast<DiscretizedCoterminalSwapStrip>(underlying_);
+        QL_REQUIRE(underlyingAsSwapStrip_ != nullptr, "Underlying must be a DiscretizedCoterminalSwapStrip object.");
     }
 
     const boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > > DiscretizedSwaption::exerciseIndex() const {
@@ -95,22 +95,51 @@ namespace QuantLib {
 
 	void DiscretizedSwaption::reset(Size size) {
 		underlying_->initialize(method(), lastPayment_);
-		DiscretizedOption::reset(size);
+        QL_REQUIRE(method() == underlying_->method(),
+            "option and underlying were initialized on "
+            "different methods");
+        values_ = Array(size, 0.0);
+        adjustValues();
 	}
 
 	const std::vector<Date>& DiscretizedSwaption::exerciseDates() const {
 		return arguments_.exercise->dates();
 	}
 
+    void DiscretizedSwaption::postAdjustValuesImpl(Time) {
+        /* In the real world, with time flowing forward, first
+        any payment is settled and only after options can be
+        exercised. Here, with time flowing backward, options
+        must be exercised before performing the adjustment.
+        */
+        underlying_->partialRollback(time());
+        underlying_->preAdjustValues();
+        
+        switch (exerciseType_) {
+        case Exercise::Bermudan:
+        case Exercise::European:
+            for (Size i = 0; i<exerciseTimes_.size(); i++) {
+                exerciseIdx_ = i;
+                Time t = exerciseTimes_[i];
+                if (t >= 0.0 && isOnTime(t))
+                    applyExerciseCondition(t);
+            }
+            break;
+        default:
+            QL_FAIL("Cannot perform this exercise type");
+        }
+        underlying_->postAdjustValues();
+    }
+
 	void DiscretizedSwaption::applyExerciseCondition(Time exerciseTime) {
         std::pair<bool, std::pair<size_t, double> > exercised = std::make_pair(false, std::make_pair(0, 0.0));
         exerciseMargins_ = Array(values_.size());
 		for (Size i = 0; i < values_.size(); i++) {
-			exerciseMargins_[i] = underlyingAsSwap_->values()[i] - values_[i];
-            values_[i] = std::max(underlyingAsSwap_->values()[i], values_[i]);
+			exerciseMargins_[i] = underlyingAsSwapStrip_->values()[i] - values_[i];
+            values_[i] = std::max(underlyingAsSwapStrip_->swap(exerciseIdx_).values()[i], values_[i]);
 			if (!exercised.first && exerciseMargins_[i] > 0.0) {
 				exercised.first = true;
-                exercised.second = std::make_pair(i, underlyingAsSwap_->impliedSwapRate(exerciseTime, i));
+                exercised.second = std::make_pair(i, underlyingAsSwapStrip_->swap(i).impliedSwapRate(exerciseTime, i));
 				exerciseIndex_->push_back(exercised);
 			}
 		}
