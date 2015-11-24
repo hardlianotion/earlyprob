@@ -195,12 +195,17 @@ namespace QuantLib {
 
     void DiscretizedSwap::reset(Size size) {
         values_ = Array(size, 0.0);
+        fixedStructure_.initialize(method(), time());
+        floatingStructure_.initialize(method(), time());
         adjustValues();
     }
 
     std::vector<Time> DiscretizedSwap::mandatoryTimes() const {
-        std::vector<Time> times;
-        QL_REQUIRE(false, "No implemented.");
+        
+        std::vector<Time> times = fixedStructure_.mandatoryTimes();
+        std::vector<Time> floatingTimes = floatingStructure_.mandatoryTimes();
+        times.insert(times.end(), floatingTimes.begin(), floatingTimes.end());
+
         return times;
     }
 
