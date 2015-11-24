@@ -40,8 +40,8 @@ namespace QuantLib {
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
     protected:
-        void preAdjustValuesImpl(Time entryTime = 0);
-        void postAdjustValuesImpl(Time = 0);
+        void preAdjustValuesImpl();
+        void postAdjustValuesImpl();
     private:
         VanillaSwap::arguments arguments_;
         std::vector<boost::shared_ptr<DiscretizedSwap> > coterminalStrip_;

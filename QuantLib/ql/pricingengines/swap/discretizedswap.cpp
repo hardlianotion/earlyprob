@@ -68,11 +68,11 @@ namespace QuantLib {
         return times;
     }
 
-    void DiscretizedFloatingCashflowStructure::preAdjustValuesImpl(Time entryTime) {
+    void DiscretizedFloatingCashflowStructure::preAdjustValuesImpl() {
         
         for (Size i = 0; i<floatingResetTimes_.size(); i++) {
             Time t = floatingResetTimes_[i];
-            if (t >= std::max(0.0, entryTime) && isOnTime(t)) {
+            if (t >= 0.0 && isOnTime(t)) {
                 DiscretizedDiscountBond bond;
                 bond.initialize(method(), floatingPayTimes_[i]);
                 bond.rollback(time_);
@@ -91,7 +91,7 @@ namespace QuantLib {
         
     }
 
-    void DiscretizedFloatingCashflowStructure::postAdjustValuesImpl(Time) {
+    void DiscretizedFloatingCashflowStructure::postAdjustValuesImpl() {
         for (Size i = 0; i<floatingPayTimes_.size(); i++) {
             Time t = floatingPayTimes_[i];
             Time reset = floatingResetTimes_[i];
@@ -109,7 +109,7 @@ namespace QuantLib {
         const DayCounter& dayCounter,
         const Date entryDate)
         : arguments_(args) {
-
+        fixedRate_ = args.fixedRate;
         fixedResetTimes_.resize(args.fixedResetDates.size());
         for (Size i = 0; i < fixedResetTimes_.size(); ++i) {
             if (entryDate <= args.fixedResetDates[i]) {
@@ -149,11 +149,11 @@ namespace QuantLib {
         return times;
     }
 
-    void DiscretizedFixedCashflowStructure::preAdjustValuesImpl(Time entryTime) {
+    void DiscretizedFixedCashflowStructure::preAdjustValuesImpl() {
 
         for (Size i = 0; i<fixedResetTimes_.size(); i++) {
             Time t = fixedResetTimes_[i];
-            if (t >= std::max(0.0, entryTime) && isOnTime(t)) {
+            if (t >= 0.0 && isOnTime(t)) {
                 DiscretizedDiscountBond bond;
                 bond.initialize(method(), fixedPayTimes_[i]);
                 bond.rollback(time_);
@@ -167,7 +167,7 @@ namespace QuantLib {
         }
     }
 
-    void DiscretizedFixedCashflowStructure::postAdjustValuesImpl(Time) {
+    void DiscretizedFixedCashflowStructure::postAdjustValuesImpl() {
         // fixed coupons whose reset time is in the past won't be managed
         // in preAdjustValues()
         for (Size i = 0; i<fixedPayTimes_.size(); i++) {
@@ -180,8 +180,12 @@ namespace QuantLib {
         }
     }
 
+    Real DiscretizedFixedCashflowStructure::fixedRate() const {
+        return fixedRate_;
+    }
+
     Real DiscretizedSwap::impliedSwapRate(Time t, Integer stateId) const {
-        return floatingStructure_.values()[stateId] / fixedStructure_.values()[stateId];
+        return floatingStructure_.values()[stateId] * fixedStructure_.fixedRate()/ fixedStructure_.values()[stateId];
     }
 
     DiscretizedSwap::DiscretizedSwap(const VanillaSwap::arguments& args,
@@ -208,12 +212,12 @@ namespace QuantLib {
         return times;
     }
 
-    void DiscretizedSwap::preAdjustValuesImpl(Time entryTime) {
+    void DiscretizedSwap::preAdjustValuesImpl() {
         // floating payments
         floatingStructure_.partialRollback(time());
-        floatingStructure_.preAdjustValuesImpl(entryTime);
+        floatingStructure_.preAdjustValuesImpl();
         fixedStructure_.partialRollback(time());
-        fixedStructure_.preAdjustValuesImpl(entryTime);
+        fixedStructure_.preAdjustValuesImpl();
         values_ = floatingStructure_.values() - fixedStructure_.values();
         
         if (arguments_.type != VanillaSwap::Receiver) {
@@ -221,9 +225,9 @@ namespace QuantLib {
         }
     }
 
-    void DiscretizedSwap::postAdjustValuesImpl(Time ) {
-        floatingStructure_.postAdjustValuesImpl(Time());
-        fixedStructure_.postAdjustValuesImpl(Time());
+    void DiscretizedSwap::postAdjustValuesImpl() {
+        floatingStructure_.postAdjustValuesImpl();
+        fixedStructure_.postAdjustValuesImpl();
         values_ = floatingStructure_.values() - fixedStructure_.values();
 
         if (arguments_.type != VanillaSwap::Receiver) {

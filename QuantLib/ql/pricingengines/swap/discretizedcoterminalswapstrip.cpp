@@ -32,7 +32,7 @@ namespace QuantLib {
         : arguments_(args), coterminalStrip_(entryDates.size()) {
 
         for (size_t i = 0; i < entryDates.size(); ++i) {
-            coterminalStrip_[i] = boost::shared_ptr<DiscretizedSwap>(new DiscretizedSwap(args, referenceDate, dayCounter, Date()));
+            coterminalStrip_[i] = boost::shared_ptr<DiscretizedSwap>(new DiscretizedSwap(args, referenceDate, dayCounter, entryDates[i]));
         }
     }
 
@@ -49,16 +49,16 @@ namespace QuantLib {
         return coterminalStrip_[0]->mandatoryTimes();
     }
 
-    void DiscretizedCoterminalSwapStrip::preAdjustValuesImpl(Time entryTime) {
+    void DiscretizedCoterminalSwapStrip::preAdjustValuesImpl() {
         for (size_t i = 0; i < coterminalStrip_.size(); ++i) {
             coterminalStrip_[i]->time() = time();
-            coterminalStrip_[i]->preAdjustValuesImpl(entryTime);
+            coterminalStrip_[i]->preAdjustValuesImpl();
         }
     }
 
-    void DiscretizedCoterminalSwapStrip::postAdjustValuesImpl(Time) {
+    void DiscretizedCoterminalSwapStrip::postAdjustValuesImpl() {
         for (size_t i = 0; i < coterminalStrip_.size(); ++i) {
-            coterminalStrip_[i]->postAdjustValuesImpl(Time());
+            coterminalStrip_[i]->postAdjustValuesImpl();
         }
     }
 

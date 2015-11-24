@@ -40,8 +40,8 @@ namespace QuantLib {
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
     protected:
-        void preAdjustValuesImpl(Time entryTime = 0);
-        void postAdjustValuesImpl(Time = 0);
+        void preAdjustValuesImpl();
+        void postAdjustValuesImpl();
     private:
         VanillaSwap::arguments arguments_;
         std::vector<Time> floatingResetTimes_;
@@ -57,13 +57,15 @@ namespace QuantLib {
 
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
+        Real fixedRate() const;
     protected:
-        void preAdjustValuesImpl(Time entryTime = 0);
-        void postAdjustValuesImpl(Time = 0);
+        void preAdjustValuesImpl();
+        void postAdjustValuesImpl();
     private:
         VanillaSwap::arguments arguments_;
         std::vector<Time> fixedResetTimes_;
         std::vector<Time> fixedPayTimes_;
+        Real fixedRate_;
     };
 
     class DiscretizedSwap : public DiscretizedAsset {
@@ -76,8 +78,8 @@ namespace QuantLib {
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
       protected:
-        void preAdjustValuesImpl(Time entryTime  = 0);
-        void postAdjustValuesImpl(Time = 0);
+        void preAdjustValuesImpl();
+        void postAdjustValuesImpl();
       private:
         VanillaSwap::arguments arguments_;
         DiscretizedFloatingCashflowStructure floatingStructure_;
