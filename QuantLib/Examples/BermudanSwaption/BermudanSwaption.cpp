@@ -111,14 +111,14 @@ namespace {
         if (result_ptr != allResults.end()) {
             const boost::shared_ptr<dated_prob_boundaries> datedProbBoundaries = 
                 boost::any_cast<boost::shared_ptr<dated_prob_boundaries> > (result_ptr->second);
-            out << "Exercise Probability";
+            out << "Exercise Probability {date, (prob, rate)}" << std::endl;
             for (
                 dated_prob_boundaries::const_iterator ptr = datedProbBoundaries->begin();
                 ptr != datedProbBoundaries->end();
                 ++ptr
             ) {
                 std::pair<double, double> result = ptr->second;
-                out << "(" << ptr->first << ", " << result.first << ") ";
+                out << "{" << ptr->first << ", (" << result.first << ", "<< result.second << ")" << "} " << std::endl;
             }
             out << std::endl;
         }

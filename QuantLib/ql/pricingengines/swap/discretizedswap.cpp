@@ -150,7 +150,7 @@ namespace QuantLib {
     }
 
     void DiscretizedFixedCashflowStructure::preAdjustValuesImpl(Time entryTime) {
-        
+
         for (Size i = 0; i<fixedResetTimes_.size(); i++) {
             Time t = fixedResetTimes_[i];
             if (t >= std::max(0.0, entryTime) && isOnTime(t)) {
@@ -181,8 +181,7 @@ namespace QuantLib {
     }
 
     Real DiscretizedSwap::impliedSwapRate(Time t, Integer stateId) const {
-        Real payerWeight = (arguments_.type == VanillaSwap::Payer) ? 1.0 : -1.0;
-        return payerWeight * floatingStructure_.values()[stateId] / fixedStructure_.values()[stateId];
+        return floatingStructure_.values()[stateId] / fixedStructure_.values()[stateId];
     }
 
     DiscretizedSwap::DiscretizedSwap(const VanillaSwap::arguments& args,
@@ -211,11 +210,13 @@ namespace QuantLib {
 
     void DiscretizedSwap::preAdjustValuesImpl(Time entryTime) {
         // floating payments
+        floatingStructure_.partialRollback(time());
         floatingStructure_.preAdjustValuesImpl(entryTime);
+        fixedStructure_.partialRollback(time());
         fixedStructure_.preAdjustValuesImpl(entryTime);
         values_ = floatingStructure_.values() - fixedStructure_.values();
         
-        if (arguments_.type == VanillaSwap::Receiver) {
+        if (arguments_.type != VanillaSwap::Receiver) {
             values_ *= -1.0;
         }
     }
@@ -225,7 +226,7 @@ namespace QuantLib {
         fixedStructure_.postAdjustValuesImpl(Time());
         values_ = floatingStructure_.values() - fixedStructure_.values();
 
-        if (arguments_.type == VanillaSwap::Receiver) {
+        if (arguments_.type != VanillaSwap::Receiver) {
             values_ *= -1.0;
         }
     }

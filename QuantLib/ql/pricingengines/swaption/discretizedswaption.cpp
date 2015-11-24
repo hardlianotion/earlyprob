@@ -132,15 +132,17 @@ namespace QuantLib {
     }
 
 	void DiscretizedSwaption::applyExerciseCondition(Time exerciseTime) {
-        std::pair<bool, std::pair<size_t, double> > exercised = std::make_pair(false, std::make_pair(0, 0.0));
+        std::pair<bool, std::pair<Size, Real> > exercised = std::make_pair(false, std::make_pair(0u, 0.0));
         exerciseMargins_ = Array(values_.size());
-		for (Size i = 0; i < values_.size(); i++) {
-			exerciseMargins_[i] = underlyingAsSwapStrip_->values()[i] - values_[i];
+		for (Size i = 0u; i < values_.size(); i++) {
+			exerciseMargins_[i] = underlyingAsSwapStrip_->swap(exerciseIdx_).values()[i] - values_[i];
             values_[i] = std::max(underlyingAsSwapStrip_->swap(exerciseIdx_).values()[i], values_[i]);
 			if (!exercised.first && exerciseMargins_[i] > 0.0) {
+                const DiscretizedSwap& swap = underlyingAsSwapStrip_->swap(exerciseIndex_->size());
+                
 				exercised.first = true;
-                exercised.second = std::make_pair(i, underlyingAsSwapStrip_->swap(i).impliedSwapRate(exerciseTime, i));
-				exerciseIndex_->push_back(exercised);
+                exercised.second = std::make_pair(i, swap.impliedSwapRate(exerciseTime, i));
+                exerciseIndex_->push_back(exercised);
 			}
 		}
 		if (!exercised.first) {
