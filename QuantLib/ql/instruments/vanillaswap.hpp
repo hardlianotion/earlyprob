@@ -138,6 +138,7 @@ namespace QuantLib {
                       nominal(Null<Real>()) {}
         Type type;
         Real nominal;
+        Real fixedRate;
 
         std::vector<Date> fixedResetDates;
         std::vector<Date> fixedPayDates;

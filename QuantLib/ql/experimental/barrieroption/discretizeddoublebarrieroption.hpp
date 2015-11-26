@@ -58,7 +58,7 @@ namespace QuantLib {
 
         void checkBarrier(Array &optvalues, const Array &grid) const;
       protected:
-        void postAdjustValuesImpl();
+        void postAdjustValuesImpl(Time = 0);
       private:
         DoubleBarrierOption::arguments arguments_;
         std::vector<Time> stoppingTimes_;

@@ -26,7 +26,8 @@
 #define quantlib_discretized_swaption_hpp
 
 #include <ql/instruments/swaption.hpp>
-#include <ql/discretizedasset.hpp>
+#include <ql/discretizedasset.hpp>    
+#include <ql/pricingengines/swap/discretizedswap.hpp>
 
 namespace QuantLib {
 
@@ -36,15 +37,18 @@ namespace QuantLib {
                             const Date& referenceDate,
                             const DayCounter& dayCounter);
         void reset(Size size);
-        const boost::shared_ptr<std::vector<std::pair<bool, size_t> > > exerciseIndex() const;
+        const boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > > exerciseIndex() const;
 		const std::vector<Date>& exerciseDates() const;
 	protected:
-		void applyExerciseCondition();
+        void postAdjustValuesImpl();
+		void applyExerciseCondition(Time exerciseTime);
       private:
         Swaption::arguments arguments_;
         Time lastPayment_;
 		Array exerciseMargins_;
-		boost::shared_ptr<std::vector<std::pair<bool, size_t> > > exerciseIndex_;
+        Size exerciseIdx_;
+        boost::shared_ptr<std::vector<std::pair<bool, std::pair<size_t, Real> > > > exerciseIndex_;
+        boost::shared_ptr<DiscretizedCoterminalSwapStrip> underlyingAsSwapStrip_;
     };
 
 }

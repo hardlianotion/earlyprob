@@ -46,7 +46,7 @@ namespace QuantLib {
         adjustValues();
     }
 
-    void DiscretizedDoubleBarrierOption::postAdjustValuesImpl() {
+    void DiscretizedDoubleBarrierOption::postAdjustValuesImpl(Time) {
         if (arguments_.barrierType!=DoubleBarrier::KnockOut) {
             vanilla_.rollback(time());
         }

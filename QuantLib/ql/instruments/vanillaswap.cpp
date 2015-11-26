@@ -91,7 +91,7 @@ namespace QuantLib {
 
         arguments->type = type_;
         arguments->nominal = nominal_;
-
+        arguments->fixedRate = fixedRate_;
         const Leg& fixedCoupons = fixedLeg();
 
         arguments->fixedResetDates = arguments->fixedPayDates =

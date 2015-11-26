@@ -482,6 +482,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ql\pricingengines\additionalresultcalculators.hpp" />
+    <ClInclude Include="ql\pricingengines\swap\discretizedcoterminalswapstrip.hpp" />
     <ClInclude Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.hpp" />
     <ClInclude Include="ql\math\polynomialmathfunction.hpp" />
     <ClInclude Include="ql\math\pascaltriangle.hpp" />
@@ -1737,6 +1738,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ql\pricingengines\additionalresultcalculators.cpp" />
+    <ClCompile Include="ql\pricingengines\swap\discretizedcoterminalswapstrip.cpp" />
     <ClCompile Include="ql\pricingengines\treecumulativeprobabilitycalculator1d.cpp" />
     <ClCompile Include="ql\math\polynomialmathfunction.cpp" />
     <ClCompile Include="ql\math\pascaltriangle.cpp" />

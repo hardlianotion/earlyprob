@@ -114,7 +114,7 @@ namespace QuantLib {
         }
     }
 
-    void DiscretizedConvertible::postAdjustValuesImpl() {
+    void DiscretizedConvertible::postAdjustValuesImpl(Time) {
 
         bool convertible = false;
         switch (arguments_.exercise->type()) {

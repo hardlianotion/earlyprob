@@ -30,11 +30,51 @@
 
 namespace QuantLib {
 
+    class DiscretizedFloatingCashflowStructure : public DiscretizedAsset {
+        friend class DiscretizedSwap;
+        DiscretizedFloatingCashflowStructure(const VanillaSwap::arguments&,
+            const Date& referenceDate,
+            const DayCounter& dayCounter, 
+            const Date entryDate = Date());
+
+        void reset(Size size);
+        std::vector<Time> mandatoryTimes() const;
+    protected:
+        void preAdjustValuesImpl();
+        void postAdjustValuesImpl();
+    private:
+        VanillaSwap::arguments arguments_;
+        std::vector<Time> floatingResetTimes_;
+        std::vector<Time> floatingPayTimes_;
+    };
+
+    class DiscretizedFixedCashflowStructure : public DiscretizedAsset {
+        friend class DiscretizedSwap;
+        DiscretizedFixedCashflowStructure(const VanillaSwap::arguments&,
+            const Date& referenceDate,
+            const DayCounter& dayCounter, 
+            const Date entryDate = Date());
+
+        void reset(Size size);
+        std::vector<Time> mandatoryTimes() const;
+        Real fixedRate() const;
+    protected:
+        void preAdjustValuesImpl();
+        void postAdjustValuesImpl();
+    private:
+        VanillaSwap::arguments arguments_;
+        std::vector<Time> fixedResetTimes_;
+        std::vector<Time> fixedPayTimes_;
+        Real fixedRate_;
+    };
+
     class DiscretizedSwap : public DiscretizedAsset {
+        friend class DiscretizedCoterminalSwapStrip;
       public:
         DiscretizedSwap(const VanillaSwap::arguments&,
                         const Date& referenceDate,
-                        const DayCounter& dayCounter);
+                        const DayCounter& dayCounter, const Date entryDate = Date());
+        Real impliedSwapRate(Time t, Integer stateId) const;
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
       protected:
@@ -42,10 +82,8 @@ namespace QuantLib {
         void postAdjustValuesImpl();
       private:
         VanillaSwap::arguments arguments_;
-        std::vector<Time> fixedResetTimes_;
-        std::vector<Time> fixedPayTimes_;
-        std::vector<Time> floatingResetTimes_;
-        std::vector<Time> floatingPayTimes_;
+        DiscretizedFloatingCashflowStructure floatingStructure_;
+        DiscretizedFixedCashflowStructure fixedStructure_;
     };
 
 }
