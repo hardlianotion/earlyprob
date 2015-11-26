@@ -26,4 +26,7 @@ namespace QuantLibAddin {
 
     %generate(c#, swaptionExerciseProbabilities);
     std::vector<double> swaptionExerciseProbabilities(const std::string &s);
+
+    %generate(c#, swaptionExerciseRates);
+    std::vector<double> swaptionExerciseRates(const std::string &s);    
 }

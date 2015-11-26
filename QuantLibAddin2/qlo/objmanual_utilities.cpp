@@ -125,3 +125,27 @@ std::vector<double> QuantLibAddin::swaptionExerciseProbabilities(const std::stri
     }
     return ret;
 }
+
+std::vector<double> QuantLibAddin::swaptionExerciseRates(const std::string &objectID) {
+    RP_GET_REFERENCE(swaption, objectID, QuantLibAddin::Swaption, QuantLib::Swaption);
+    std::vector<double> ret;
+
+    typedef std::map<std::string, boost::any> result_map;
+    typedef std::map<Date, std::pair<double, double> > dated_prob_boundaries;
+    const result_map allResults = swaption->additionalResults();
+    
+    result_map::const_iterator result_ptr = allResults.find("ExerciseProbabilityAndSwapBoundary");
+    if (result_ptr != allResults.end()) {
+        const boost::shared_ptr<dated_prob_boundaries> datedProbBoundaries = 
+            boost::any_cast<boost::shared_ptr<dated_prob_boundaries> > (result_ptr->second);
+        for (
+            dated_prob_boundaries::const_iterator ptr = datedProbBoundaries->begin();
+            ptr != datedProbBoundaries->end();
+            ++ptr
+        ) {
+            std::pair<double, double> result = ptr->second;
+            ret.push_back(result.second);
+        }
+    }
+    return ret;
+}

@@ -26,6 +26,7 @@ namespace QuantLibAddin {
 
     std::vector<QuantLib::Date> swaptionExerciseDates(const std::string &objectID);
     std::vector<double> swaptionExerciseProbabilities(const std::string &objectID);
+    std::vector<double> swaptionExerciseRates(const std::string &objectID);
 } // namespace QuantLibAddin
 
 #endif
