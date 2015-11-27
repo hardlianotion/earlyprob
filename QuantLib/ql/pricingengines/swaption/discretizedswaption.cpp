@@ -137,17 +137,16 @@ namespace QuantLib {
 		for (Size i = 0u; i < values_.size(); i++) {
 			exerciseMargins_[i] = underlyingAsSwapStrip_->swap(exerciseIdx_).values()[i] - values_[i];
             values_[i] = std::max(underlyingAsSwapStrip_->swap(exerciseIdx_).values()[i], values_[i]);
-			if (!exercised.first && exerciseMargins_[i] > 0.0) {
+			if (exerciseMargins_[i] > 0.0) {
                 const DiscretizedSwap& swap = underlyingAsSwapStrip_->swap(exerciseIndex_->size());
                 
 				exercised.first = true;
                 exercised.second = std::make_pair(i, swap.impliedSwapRate(exerciseTime, i));
-                exerciseIndex_->push_back(exercised);
+                break;
 			}
 		}
-		if (!exercised.first) {
-			exerciseIndex_->push_back(exercised);
-		}
+		exerciseIndex_->push_back(exercised);
+		
 	}
 
 }

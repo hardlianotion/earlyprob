@@ -46,8 +46,8 @@ namespace QuantLib {
 		void computeCumulativeProbabilities();
 		boost::shared_ptr<OneFactorModel::ShortRateTree> tree_;
 		boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > > exerciseIndex_;
-		std::vector<Time> exerciseTimes_;
-		std::vector<Date> exerciseDates_;
+		std::vector<Time> exerciseTimes_;   //future exercise dates
+		std::vector<Date> exerciseDates_;   //all exercise dates, future and past.
 		std::vector<std::vector<std::pair<Real, Real> > > cumulativeProbs_;
 		Date referenceDate_;
 	};
