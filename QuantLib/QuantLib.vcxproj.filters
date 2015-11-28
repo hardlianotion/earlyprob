@@ -6476,5 +6476,8 @@
     <ClCompile Include="ql\pricingengines\swap\discretizedcoterminalswapstrip.cpp">
       <Filter>pricingengines\swap</Filter>
     </ClCompile>
+    <ClCompile Include="ql\patterns\observable.cpp">
+      <Filter>patterns</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

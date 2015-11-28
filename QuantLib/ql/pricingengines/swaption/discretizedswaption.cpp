@@ -142,7 +142,6 @@ namespace QuantLib {
                 
 				exercised.first = true;
                 exercised.second = std::make_pair(i, swap.impliedSwapRate(exerciseTime, i));
-                break;
 			}
 		}
 		exerciseIndex_->push_back(exercised);
