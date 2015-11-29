@@ -7,6 +7,9 @@ data and prices an interest rate swap and a bermudan swaption.
 
 To run the demo, invoke DOS batch file init.bat.
 
-Hit Ctrl-Alt-C to trigger a recalculation.
+Hit Ctrl-Shift-C to trigger a recalculation.
 
-Hit Ctrl-Alt-X to close Excel.
+Hit Ctrl-Shift-E on a cell containing #NUM to see the error message.
+
+Hit Ctrl-Shift-X to close Excel.
+
