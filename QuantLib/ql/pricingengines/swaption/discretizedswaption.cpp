@@ -45,7 +45,7 @@ namespace QuantLib {
 
         exerciseTimes_.reserve(arguments_.exercise->dates().size());
         std::vector<Date> positiveDates;
-        for (Size i = 0; i < exerciseTimes_.size(); ++i) {
+        for (Size i = 0; i < arguments_.exercise->dates().size(); ++i) {
             if(referenceDate <= arguments_.exercise->date(i)) {
                 positiveDates.push_back(arguments_.exercise->date(i));
                 exerciseTimes_.push_back(
