@@ -1044,10 +1044,6 @@
 				>
 			</File>
 			<File
-				RelativePath="functions.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\fastfouriertransform.cpp"
 				>
 			</File>
@@ -1061,6 +1057,10 @@
 			</File>
 			<File
 				RelativePath=".\forwardoption.cpp"
+				>
+			</File>
+			<File
+				RelativePath="functions.cpp"
 				>
 			</File>
 			<File
@@ -1225,6 +1225,10 @@
 			</File>
 			<File
 				RelativePath=".\ode.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\onefactortrinomialtree.cpp"
 				>
 			</File>
 			<File
@@ -1589,10 +1593,6 @@
 				>
 			</File>
 			<File
-				RelativePath="functions.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\fastfouriertransform.hpp"
 				>
 			</File>
@@ -1606,6 +1606,10 @@
 			</File>
 			<File
 				RelativePath=".\forwardoption.hpp"
+				>
+			</File>
+			<File
+				RelativePath="functions.hpp"
 				>
 			</File>
 			<File
