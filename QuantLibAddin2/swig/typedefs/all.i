@@ -38,6 +38,7 @@ namespace QuantLib {
     class Leg;
     class YieldTermStructure;
     class GeneralizedBlackScholesProcess;
+    class AdditionalResultCalculator;
 
     template <class T> class Handle;
 }

@@ -7,6 +7,8 @@
 #include <ql/pricingengines/swaption/jamshidianswaptionengine.hpp>
 #include <ql/pricingengines/swaption/treeswaptionengine.hpp>
 #include <ql/pricingengines/swaption/g2swaptionengine.hpp>
+// FIXME this belongs in a separate group.
+#include <ql/pricingengines/treecumulativeprobabilitycalculator1d.hpp> 
 %}
 
 %insert(pricingengines_addin_cpp) %{
@@ -17,6 +19,16 @@
 
 namespace QuantLib {
 
+    // FIXME this belongs in a separate group.
+	/*struct*/class AdditionalResultCalculator {};
+
+    // FIXME this belongs in a separate group.
+	/*struct*/class TreeCumulativeProbabilityCalculator1D : public AdditionalResultCalculator {
+      public:
+        %generate(c#, TreeCumulativeProbabilityCalculator1D);
+		TreeCumulativeProbabilityCalculator1D();
+	};
+	
     class PricingEngine {};
 
     class AnalyticEuropeanEngine : public PricingEngine {
@@ -52,9 +64,11 @@ namespace QuantLib {
       public:
         %generate(c#, TreeSwaptionEngine);
         TreeSwaptionEngine(const boost::shared_ptr<ShortRateModel>& x,
-                           Size timeSteps/*,
-                           const Handle<YieldTermStructure>& termStructure =
-                                                 Handle<YieldTermStructure>()*/);    
+                           Size timeSteps,
+                           const Handle<YieldTermStructure>& termStructure /*=
+                                                 Handle<YieldTermStructure>()*/,
+						   const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator /*=
+												 boost::shared_ptr<AdditionalResultCalculator>()*/);    
     };
     
     class G2SwaptionEngine : public PricingEngine {

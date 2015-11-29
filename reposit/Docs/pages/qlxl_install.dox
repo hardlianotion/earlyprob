@@ -79,7 +79,9 @@ This batch file should:
 market environment (extracted from the Excel VBA Framework application), an
 interest rate swap, and a bermudan swaption.
 
-Hit <tt>Ctrl-Shift-C</tt> to recalculate.  Hit <tt>Ctrl-Shift-X</tt> to exit the demo.
+Hit <tt>Ctrl-Shift-C</tt> to recalculate.
+Hit <tt>Ctrl-Shift-E</tt> on a cell containing <tt>#NUM</tt> to see the error message.
+Hit <tt>Ctrl-Shift-X</tt> to exit the demo.
 
 \section qlxl_install_support Support
 

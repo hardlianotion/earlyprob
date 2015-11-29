@@ -40,7 +40,23 @@ namespace BermudanSwaption
             int[] ret = new int[len];
             for (int i = 0; i < len; i++)
                 ret[i] = temp2[i + 1];
-            QuantLibAddin.Export.qlReleaseMemory(p);
+            QuantLibAddin.Export.qlReleaseMemoryInt(p);
+            return ret;
+        }
+
+        static double[] intPtrToDblArray(IntPtr p)
+        {
+            // Determine the size of the array.
+            double[] temp = new double[1];
+            Marshal.Copy(p, temp, 0, 1);
+            int len = (int)temp[0];
+            // Extract the array.
+            double[] temp2 = new double[len + 1];
+            Marshal.Copy(p, temp2, 0, len + 1);
+            double[] ret = new double[len];
+            for (int i = 0; i < len; i++)
+                ret[i] = temp2[i + 1];
+            QuantLibAddin.Export.qlReleaseMemoryDbl(p);
             return ret;
         }
 
@@ -67,7 +83,7 @@ namespace BermudanSwaption
             // Now extract the single value and return it.
             int[] retArray = new int[2];
             Marshal.Copy(p, retArray, 0, 2);
-            QuantLibAddin.Export.qlReleaseMemory(p);
+            QuantLibAddin.Export.qlReleaseMemoryInt(p);
             return retArray[1];
         }
 
@@ -167,15 +183,15 @@ namespace BermudanSwaption
                 QuantLibAddin.Export.qlEuribor(
                     Trigger, indexSixMonthsID, Overwrite, Permanent,
                     tenor6M, rhTermStructureID);
+                string indexSixMonthsTenorStr =
+                    QuantLibAddin.Export.qlInterestRateIndexTenor(
+                        Trigger, indexSixMonthsID);
                 StringBuilder indexSixMonthsTenor =
-                //    QuantLibAddin.Export.qlInterestRateIndexTenor(
-                //        Trigger, indexSixMonthsID);
-                // The above function is not yet implemented so for the moment the value is hard-coded.
-                    new StringBuilder("6M");
-                string indexSixMonthsDayCounter =
+                    new StringBuilder(indexSixMonthsTenorStr);
+                string indexSixMonthsDayCounterStr =
                     QuantLibAddin.Export.qlInterestRateIndexDayCounter(
                         Trigger, indexSixMonthsID);
-                StringBuilder indexSixMonthsDayCounter2 = new StringBuilder(indexSixMonthsDayCounter);
+                StringBuilder indexSixMonthsDayCounter = new StringBuilder(indexSixMonthsDayCounterStr);
 
                 int startDate = calendarAdvance(calendar, settlementDate, "1Y", floatingLegConvention);
                 int maturity = calendarAdvance(calendar, startDate, "5Y", floatingLegConvention);
@@ -203,7 +219,7 @@ namespace BermudanSwaption
                     Trigger, swapID, Overwrite, Permanent,
                     type, 1000, fixedScheduleID, dummyFixedRate,
                     fixedLegDayCounter, floatScheduleID,
-                    indexSixMonthsID, 0, indexSixMonthsDayCounter2);
+                    indexSixMonthsID, 0, indexSixMonthsDayCounter);
 
                 StringBuilder pricingEngineID =
                     new StringBuilder("pricingEngine");
@@ -223,19 +239,19 @@ namespace BermudanSwaption
                     Trigger, atmSwapID, Overwrite, Permanent,
                     type, 1000, fixedScheduleID, fixedATMRate,
                     fixedLegDayCounter, floatScheduleID,
-                    indexSixMonthsID, 0, indexSixMonthsDayCounter2);
+                    indexSixMonthsID, 0, indexSixMonthsDayCounter);
                 StringBuilder otmSwapID = new StringBuilder("otmSwap");
                 QuantLibAddin.Export.qlVanillaSwap(
                     Trigger, otmSwapID, Overwrite, Permanent,
                     type, 1000, fixedScheduleID, fixedOTMRate,
                     fixedLegDayCounter, floatScheduleID,
-                    indexSixMonthsID, 0, indexSixMonthsDayCounter2);
+                    indexSixMonthsID, 0, indexSixMonthsDayCounter);
                 StringBuilder itmSwapID = new StringBuilder("itmSwap");
                 QuantLibAddin.Export.qlVanillaSwap(
                     Trigger, itmSwapID, Overwrite, Permanent,
                     type, 1000, fixedScheduleID, fixedITMRate,
                     fixedLegDayCounter, floatScheduleID,
-                    indexSixMonthsID, 0, indexSixMonthsDayCounter2);
+                    indexSixMonthsID, 0, indexSixMonthsDayCounter);
 
                 // defining the swaptions to be used in model calibration
                 List<StringBuilder> swaptionMaturities =
@@ -269,47 +285,19 @@ namespace BermudanSwaption
                         volID,
                         indexSixMonthsID,
                         indexSixMonthsTenor,
-                        indexSixMonthsDayCounter2,
-                        indexSixMonthsDayCounter2,
+                        indexSixMonthsDayCounter,
+                        indexSixMonthsDayCounter,
                         rhTermStructureID);
                     swaptions.Add(swaptionHelperID);
                 }
 
                 // defining the models
-                StringBuilder modelG2ID = new StringBuilder("modelG2");
-                QuantLibAddin.Export.qlG2Model(
-                    Trigger, modelG2ID, Overwrite, Permanent,
-                    rhTermStructureID);
-
                 StringBuilder modelHWID = new StringBuilder("modelHW");
                 QuantLibAddin.Export.qlHullWhite(
                     Trigger, modelHWID, Overwrite, Permanent,
                     rhTermStructureID);
 
                 // model calibrations
-
-                Console.WriteLine("G2 (analytic formulae) calibration");
-                for (int i = 0; i < swaptions.Count; i++)
-                {
-                    StringBuilder engineID = new StringBuilder("g2engine" + i);
-                    QuantLibAddin.Export.qlG2SwaptionEngine(
-                        Trigger, engineID, Overwrite, Permanent,
-                        modelG2ID, 6.0, 16);
-
-                    StringBuilder swaptionHelperID =
-                        new StringBuilder("swaptionHelper" + i);
-                    QuantLibAddin.Export.qlCalibrationHelperSetPricingEngine(
-                        Trigger, swaptionHelperID, engineID);
-                }
-
-                calibrateModel(modelG2ID, swaptions);
-                //std::cout << "calibrated to:\n"
-                //          << "a     = " << modelG2->params()[0] << ", "
-                //          << "sigma = " << modelG2->params()[1] << "\n"
-                //          << "b     = " << modelG2->params()[2] << ", "
-                //          << "eta   = " << modelG2->params()[3] << "\n"
-                //          << "rho   = " << modelG2->params()[4]
-                //          << std::endl << std::endl;
 
                 Console.WriteLine("Hull-White (analytic formulae) calibration");
                 for (int i = 0; i < swaptions.Count; i++)
@@ -335,7 +323,7 @@ namespace BermudanSwaption
                 Console.WriteLine("Payer bermudan swaption struck at " +
                     fixedATMRate + " (ATM)");
 
-                IntPtr accrualStartDatesPtr = QuantLibAddin.Export.qlTemp1(
+                IntPtr accrualStartDatesPtr = QuantLibAddin.Export.qlSwapFixedLegAccrualStartDates(
                     swapID);
                 int[] accrualStartDates = intPtrToIntArray(accrualStartDatesPtr);
 
@@ -353,23 +341,32 @@ namespace BermudanSwaption
 
                 // Do the pricing for each model
 
-                StringBuilder engineG2ID = new StringBuilder("engineG2");
-                QuantLibAddin.Export.qlTreeSwaptionEngine(
-                    Trigger, engineG2ID, Overwrite, Permanent, modelG2ID, 50);
-                QuantLibAddin.Export.qlInstrumentSetPricingEngine(
-                    Trigger, bermudanSwaptionID, engineG2ID);
-                Console.WriteLine("G2 (tree): " +
-                    QuantLibAddin.Export.qlInstrumentNPV(
-                        Trigger, bermudanSwaptionID));
-
+                StringBuilder calculator = new StringBuilder("calculator");
+                QuantLibAddin.Export.qlTreeCumulativeProbabilityCalculator1D(
+                    Trigger, calculator, Overwrite, Permanent);
                 StringBuilder engineHWID = new StringBuilder("engineHW");
+                StringBuilder nullID = new StringBuilder("");
                 QuantLibAddin.Export.qlTreeSwaptionEngine(
-                    Trigger, engineHWID, Overwrite, Permanent, modelHWID, 50);
+                    Trigger, engineHWID, Overwrite, Permanent, modelHWID, 50, nullID, calculator);
                 QuantLibAddin.Export.qlInstrumentSetPricingEngine(
                     Trigger, bermudanSwaptionID, engineHWID);
                 Console.WriteLine("HW (tree): " +
                     QuantLibAddin.Export.qlInstrumentNPV(
                         Trigger, bermudanSwaptionID));
+
+                // Exercise probabilities
+
+                IntPtr exerciseDatesPtr = QuantLibAddin.Export.qlSwaptionExerciseDates(
+                    bermudanSwaptionID);
+                int[] exerciseDates = intPtrToIntArray(exerciseDatesPtr);
+                IntPtr exerciseProbabilitiesPtr = QuantLibAddin.Export.qlSwaptionExerciseProbabilities(
+                    bermudanSwaptionID);
+                double[] exerciseProbabilities = intPtrToDblArray(exerciseProbabilitiesPtr);
+                Console.WriteLine("Exercise probabilities");
+                for (int i = 0; i < exerciseDates.Length; i++)
+                {
+                    Console.WriteLine(DateTime.FromOADate(exerciseDates[i]).ToString("dd-MMM-yyyy") + " " + exerciseProbabilities[i]);
+                }
             }
             catch (Exception ex)
             {
