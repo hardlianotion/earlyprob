@@ -141,7 +141,6 @@ namespace QuantLib {
 		QL_REQUIRE(resultPtr != results->additionalResults.end(),
 			"Exercise probability not provided");
 		return boost::any_cast<std::pair<Real, Real>>(resultPtr->second);
-		return std::make_pair(0.0, 0.0);
 	}
 
     Volatility Swaption::impliedVolatility(Real targetValue,

@@ -43,32 +43,37 @@ namespace QuantLib {
                         std::vector<Time>()),
       arguments_(args), exerciseIndex_(new std::vector<std::pair<bool, std::pair<Size, Real> > >) {
 
-        exerciseTimes_.resize(arguments_.exercise->dates().size());
-        for (Size i=0; i<exerciseTimes_.size(); ++i)
-            exerciseTimes_[i] =
-                dayCounter.yearFraction(referenceDate,
-                                        arguments_.exercise->date(i));
+        exerciseTimes_.reserve(arguments_.exercise->dates().size());
+        std::vector<Date> positiveDates;
+        for (Size i = 0; i < exerciseTimes_.size(); ++i) {
+            if(referenceDate <= arguments_.exercise->date(i)) {
+                positiveDates.push_back(arguments_.exercise->date(i));
+                exerciseTimes_.push_back(
+                    dayCounter.yearFraction(referenceDate,
+                        arguments_.exercise->date(i)));
+            }
+        }
 
         // Date adjustments can get time vectors out of synch.
         // Here, we try and collapse similar dates which could cause
         // a mispricing.
-        for (Size i=0; i<arguments_.exercise->dates().size(); i++) {
-            Date exerciseDate = arguments_.exercise->date(i);
-            for (Size j=0; j<arguments_.fixedPayDates.size(); j++) {
+        for (Size i=0; i<positiveDates.size(); i++) {
+            Date exerciseDate = positiveDates[i];
+            for (Size j = 0; j < arguments_.fixedPayDates.size(); j++) {
                 if (withinNextWeek(exerciseDate,
-                                   arguments_.fixedPayDates[j])
+                    arguments_.fixedPayDates[j])
                     // coupons in the future are dealt with below
                     && arguments_.fixedResetDates[j] < referenceDate)
                     arguments_.fixedPayDates[j] = exerciseDate;
             }
-            for (Size j=0; j<arguments_.fixedResetDates.size(); j++) {
+            for (Size j = 0; j < arguments_.fixedResetDates.size(); j++) {
                 if (withinPreviousWeek(exerciseDate,
-                                       arguments_.fixedResetDates[j]))
+                    arguments_.fixedResetDates[j]))
                     arguments_.fixedResetDates[j] = exerciseDate;
             }
-            for (Size j=0; j<arguments_.floatingResetDates.size(); j++) {
+            for (Size j = 0; j < arguments_.floatingResetDates.size(); j++) {
                 if (withinPreviousWeek(exerciseDate,
-                                       arguments_.floatingResetDates[j]))
+                    arguments_.floatingResetDates[j]))
                     arguments_.floatingResetDates[j] = exerciseDate;
             }
         }
@@ -84,7 +89,7 @@ namespace QuantLib {
         underlying_ = boost::shared_ptr<DiscretizedAsset>(
                                             new DiscretizedCoterminalSwapStrip(arguments_,
                                                                 referenceDate,
-                                                                dayCounter, arguments_.exercise->dates()));
+                                                                dayCounter, positiveDates));
         underlyingAsSwapStrip_ = boost::dynamic_pointer_cast<DiscretizedCoterminalSwapStrip>(underlying_);
         QL_REQUIRE(underlyingAsSwapStrip_ != nullptr, "Underlying must be a DiscretizedCoterminalSwapStrip object.");
     }
