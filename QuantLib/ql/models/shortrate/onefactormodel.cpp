@@ -17,9 +17,10 @@
  FOR A PARTICULAR PURPOSE.  See the license for more details.
 */
 
-#include <ql/models/shortrate/onefactormodel.hpp>
+#include <ql/models/shortrate/onefactormodel.hpp> 
 #include <ql/stochasticprocess.hpp>
 #include <ql/math/solvers1d/brent.hpp>
+#include <ql/pricingengines/treecumulativeprobabilitycalculator1d.hpp>
 
 namespace QuantLib {
 
@@ -93,11 +94,19 @@ namespace QuantLib {
     : ShortRateModel(nArguments) {}
 
     boost::shared_ptr<Lattice>
-    OneFactorModel::tree(const TimeGrid& grid) const {
+    OneFactorModel::tree(const TimeGrid& grid,
+						 const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator) const {
         boost::shared_ptr<TrinomialTree> trinomial(
                               new TrinomialTree(dynamics()->process(), grid));
-        return boost::shared_ptr<Lattice>(
-                              new ShortRateTree(trinomial, dynamics(), grid));
+		boost::shared_ptr<ShortRateTree> rateTree(new ShortRateTree(trinomial, dynamics(), grid));
+		if (additionalResultCalculator) {
+			boost::shared_ptr<TreeCumulativeProbabilityCalculator1D> cumulativeProbCalculator =
+				boost::dynamic_pointer_cast<TreeCumulativeProbabilityCalculator1D>(additionalResultCalculator);
+			if (cumulativeProbCalculator) {
+				cumulativeProbCalculator->setTree(rateTree);
+			}
+		}
+		return boost::dynamic_pointer_cast<Lattice>(rateTree);
     }
 
     DiscountFactor OneFactorAffineModel::discount(Time t) const {

@@ -19,7 +19,7 @@
 */
 
 #include <ql/pricingengines/swaption/discretizedswaption.hpp>
-#include <ql/pricingengines/swap/discretizedswap.hpp>
+#include <ql/pricingengines/swap/discretizedcoterminalswapstrip.hpp>
 
 namespace QuantLib {
 
@@ -41,34 +41,39 @@ namespace QuantLib {
     : DiscretizedOption(boost::shared_ptr<DiscretizedAsset>(),
                         args.exercise->type(),
                         std::vector<Time>()),
-      arguments_(args) {
+      arguments_(args), exerciseIndex_(new std::vector<std::pair<bool, std::pair<Size, Real> > >) {
 
-        exerciseTimes_.resize(arguments_.exercise->dates().size());
-        for (Size i=0; i<exerciseTimes_.size(); ++i)
-            exerciseTimes_[i] =
-                dayCounter.yearFraction(referenceDate,
-                                        arguments_.exercise->date(i));
+        exerciseTimes_.reserve(arguments_.exercise->dates().size());
+        std::vector<Date> positiveDates;
+        for (Size i = 0; i < exerciseTimes_.size(); ++i) {
+            if(referenceDate <= arguments_.exercise->date(i)) {
+                positiveDates.push_back(arguments_.exercise->date(i));
+                exerciseTimes_.push_back(
+                    dayCounter.yearFraction(referenceDate,
+                        arguments_.exercise->date(i)));
+            }
+        }
 
         // Date adjustments can get time vectors out of synch.
         // Here, we try and collapse similar dates which could cause
         // a mispricing.
-        for (Size i=0; i<arguments_.exercise->dates().size(); i++) {
-            Date exerciseDate = arguments_.exercise->date(i);
-            for (Size j=0; j<arguments_.fixedPayDates.size(); j++) {
+        for (Size i=0; i<positiveDates.size(); i++) {
+            Date exerciseDate = positiveDates[i];
+            for (Size j = 0; j < arguments_.fixedPayDates.size(); j++) {
                 if (withinNextWeek(exerciseDate,
-                                   arguments_.fixedPayDates[j])
+                    arguments_.fixedPayDates[j])
                     // coupons in the future are dealt with below
                     && arguments_.fixedResetDates[j] < referenceDate)
                     arguments_.fixedPayDates[j] = exerciseDate;
             }
-            for (Size j=0; j<arguments_.fixedResetDates.size(); j++) {
+            for (Size j = 0; j < arguments_.fixedResetDates.size(); j++) {
                 if (withinPreviousWeek(exerciseDate,
-                                       arguments_.fixedResetDates[j]))
+                    arguments_.fixedResetDates[j]))
                     arguments_.fixedResetDates[j] = exerciseDate;
             }
-            for (Size j=0; j<arguments_.floatingResetDates.size(); j++) {
+            for (Size j = 0; j < arguments_.floatingResetDates.size(); j++) {
                 if (withinPreviousWeek(exerciseDate,
-                                       arguments_.floatingResetDates[j]))
+                    arguments_.floatingResetDates[j]))
                     arguments_.floatingResetDates[j] = exerciseDate;
             }
         }
@@ -82,14 +87,73 @@ namespace QuantLib {
         lastPayment_ = std::max(lastFixedPayment,lastFloatingPayment);
 
         underlying_ = boost::shared_ptr<DiscretizedAsset>(
-                                            new DiscretizedSwap(arguments_,
+                                            new DiscretizedCoterminalSwapStrip(arguments_,
                                                                 referenceDate,
-                                                                dayCounter));
+                                                                dayCounter, positiveDates));
+        underlyingAsSwapStrip_ = boost::dynamic_pointer_cast<DiscretizedCoterminalSwapStrip>(underlying_);
+        QL_REQUIRE(underlyingAsSwapStrip_ != nullptr, "Underlying must be a DiscretizedCoterminalSwapStrip object.");
     }
 
-    void DiscretizedSwaption::reset(Size size) {
-        underlying_->initialize(method(), lastPayment_);
-        DiscretizedOption::reset(size);
+    const boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > > DiscretizedSwaption::exerciseIndex() const {
+		return exerciseIndex_;
+	}
+
+	void DiscretizedSwaption::reset(Size size) {
+		underlying_->initialize(method(), lastPayment_);
+        QL_REQUIRE(method() == underlying_->method(),
+            "option and underlying were initialized on "
+            "different methods");
+        values_ = Array(size, 0.0);
+        adjustValues();
+	}
+
+	const std::vector<Date>& DiscretizedSwaption::exerciseDates() const {
+		return arguments_.exercise->dates();
+	}
+
+    void DiscretizedSwaption::postAdjustValuesImpl() {
+        /* In the real world, with time flowing forward, first
+        any payment is settled and only after options can be
+        exercised. Here, with time flowing backward, options
+        must be exercised before performing the adjustment.
+        */
+        underlying_->partialRollback(time());
+        underlying_->preAdjustValues();
+        
+        switch (exerciseType_) {
+        case Exercise::Bermudan:
+        case Exercise::European:
+            for (Size i = 0; i<exerciseTimes_.size(); i++) {
+                exerciseIdx_ = i;
+                Time t = exerciseTimes_[i];
+                if (t >= 0.0 && isOnTime(t))
+                    applyExerciseCondition(t);
+            }
+            break;
+        default:
+            QL_FAIL("Cannot perform this exercise type");
+        }
+        underlying_->postAdjustValues();
     }
+
+	void DiscretizedSwaption::applyExerciseCondition(Time exerciseTime) {
+        std::pair<bool, std::pair<Size, Real> > exercised = std::make_pair(false, std::make_pair(0u, 0.0));
+        exerciseMargins_ = Array(values_.size());
+        for (Size i = 0u; i < values_.size(); i++) {
+            exerciseMargins_[i] = underlyingAsSwapStrip_->swap(exerciseIdx_).values()[i] - values_[i];
+            values_[i] = std::max(underlyingAsSwapStrip_->swap(exerciseIdx_).values()[i], values_[i]);
+            if (!exercised.first && exerciseMargins_[i] > 0.0) {
+                const DiscretizedSwap& swap = underlyingAsSwapStrip_->swap(exerciseIndex_->size());
+
+                exercised.first = true;
+                exercised.second = std::make_pair(i, swap.impliedSwapRate(exerciseTime, i));
+                exerciseIndex_->push_back(exercised);
+            }
+        }
+        if (!exercised.first) {
+            exerciseIndex_->push_back(exercised);
+        }
+		
+	}
 
 }

@@ -30,7 +30,8 @@
 #include <ql/methods/lattices/lattice.hpp>
 #include <ql/models/parameter.hpp>
 #include <ql/models/calibrationhelper.hpp>
-#include <ql/math/optimization/endcriteria.hpp>
+#include <ql/math/optimization/endcriteria.hpp>			 
+#include <ql/pricingengines/additionalresultcalculators.hpp>
 
 namespace QuantLib {
 
@@ -136,7 +137,9 @@ namespace QuantLib {
     class ShortRateModel : public CalibratedModel {
       public:
         ShortRateModel(Size nArguments);
-        virtual boost::shared_ptr<Lattice> tree(const TimeGrid&) const = 0;
+        virtual boost::shared_ptr<Lattice> tree(const TimeGrid&,
+			const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator =
+			boost::shared_ptr<AdditionalResultCalculator>()) const = 0;
     };
 
 

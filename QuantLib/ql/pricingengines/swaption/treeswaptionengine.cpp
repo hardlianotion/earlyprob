@@ -20,15 +20,17 @@
 
 #include <ql/pricingengines/swaption/treeswaptionengine.hpp>
 #include <ql/pricingengines/swaption/discretizedswaption.hpp>
+#include <ql/models/shortrate/onefactormodel.hpp>
 
 namespace QuantLib {
 
     TreeSwaptionEngine::TreeSwaptionEngine(
                                const boost::shared_ptr<ShortRateModel>& model,
                               Size timeSteps,
-                              const Handle<YieldTermStructure>& termStructure)
+                              const Handle<YieldTermStructure>& termStructure,
+							  const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : LatticeShortRateModelEngine<Swaption::arguments,
-                                  Swaption::results>(model, timeSteps),
+                                  Swaption::results>(model, timeSteps, additionalResultCalculator),
       termStructure_(termStructure) {
         registerWith(termStructure_);
     }
@@ -36,9 +38,10 @@ namespace QuantLib {
     TreeSwaptionEngine::TreeSwaptionEngine(
                               const boost::shared_ptr<ShortRateModel>& model,
                               const TimeGrid& timeGrid,
-                              const Handle<YieldTermStructure>& termStructure)
+                              const Handle<YieldTermStructure>& termStructure,
+							  const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : LatticeShortRateModelEngine<Swaption::arguments,
-                                  Swaption::results>(model, timeGrid),
+                                  Swaption::results>(model, timeGrid, additionalResultCalculator),
       termStructure_(termStructure) {
         registerWith(termStructure_);
     }
@@ -46,9 +49,10 @@ namespace QuantLib {
     TreeSwaptionEngine::TreeSwaptionEngine(
                               const Handle<ShortRateModel>& model,
                               Size timeSteps,
-                              const Handle<YieldTermStructure>& termStructure)
+                              const Handle<YieldTermStructure>& termStructure,
+							  const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : LatticeShortRateModelEngine<Swaption::arguments,
-                                  Swaption::results>(model, timeSteps),
+                                  Swaption::results>(model, timeSteps, additionalResultCalculator),
       termStructure_(termStructure) {
         registerWith(termStructure_);
     }
@@ -72,15 +76,20 @@ namespace QuantLib {
             dayCounter = termStructure_->dayCounter();
         }
 
-        DiscretizedSwaption swaption(arguments_, referenceDate, dayCounter);
+        boost::shared_ptr<DiscretizedSwaption> swaption(new DiscretizedSwaption(arguments_, referenceDate, dayCounter));
+        
+        if (additionalResultCalculator_) {
+            additionalResultCalculator_->setupDiscretizedAsset(swaption);
+        }
+        
         boost::shared_ptr<Lattice> lattice;
 
         if (lattice_) {
             lattice = lattice_;
         } else {
-            std::vector<Time> times = swaption.mandatoryTimes();
+            std::vector<Time> times = swaption->mandatoryTimes();
             TimeGrid timeGrid(times.begin(), times.end(), timeSteps_);
-            lattice = model_->tree(timeGrid);
+            lattice = model_->tree(timeGrid, additionalResultCalculator_);
         }
 
         std::vector<Time> stoppingTimes(arguments_.exercise->dates().size());
@@ -89,15 +98,18 @@ namespace QuantLib {
                 dayCounter.yearFraction(referenceDate,
                                         arguments_.exercise->date(i));
 
-        swaption.initialize(lattice, stoppingTimes.back());
+        swaption->initialize(lattice, stoppingTimes.back());
 
         Time nextExercise =
             *std::find_if(stoppingTimes.begin(),
                           stoppingTimes.end(),
                           std::bind2nd(std::greater_equal<Time>(), 0.0));
-        swaption.rollback(nextExercise);
-
-        results_.value = swaption.presentValue();
+        swaption->rollback(nextExercise);
+        results_.value = swaption->presentValue();
+        if (additionalResultCalculator_) {
+            additionalResultCalculator_->calculateAdditionalResults();
+            results_.additionalResults = additionalResultCalculator_->additionalResults();
+        }
     }
 
 }

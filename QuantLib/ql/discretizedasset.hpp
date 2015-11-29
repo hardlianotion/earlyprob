@@ -167,9 +167,10 @@ namespace QuantLib {
           exerciseTimes_(exerciseTimes) {}
         void reset(Size size);
         std::vector<Time> mandatoryTimes() const;
+		std::vector<Time> positiveExerciseTimes() const;
       protected:
         void postAdjustValuesImpl();
-        void applyExerciseCondition();
+        virtual void applyExerciseCondition(Time = 0);
         boost::shared_ptr<DiscretizedAsset> underlying_;
         Exercise::Type exerciseType_;
         std::vector<Time> exerciseTimes_;
@@ -237,7 +238,7 @@ namespace QuantLib {
         return times;
     }
 
-    inline void DiscretizedOption::applyExerciseCondition() {
+    inline void DiscretizedOption::applyExerciseCondition(Time) {
         for (Size i=0; i<values_.size(); i++)
             values_[i] = std::max(underlying_->values()[i], values_[i]);
     }

@@ -27,6 +27,7 @@
 
 #include <ql/models/model.hpp>
 #include <ql/pricingengines/genericmodelengine.hpp>
+#include <ql/pricingengines/additionalresultcalculators.hpp>
 
 namespace QuantLib {
 
@@ -40,26 +41,35 @@ namespace QuantLib {
       public:
         LatticeShortRateModelEngine(
                                const boost::shared_ptr<ShortRateModel>& model,
-                               Size timeSteps);
+                               Size timeSteps,
+			                   const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator =
+			                   boost::shared_ptr<AdditionalResultCalculator>());
         LatticeShortRateModelEngine(
                                const Handle<ShortRateModel>& model,
-                               Size timeSteps);
+                               Size timeSteps,
+			                   const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator =
+			                   boost::shared_ptr<AdditionalResultCalculator>());
         LatticeShortRateModelEngine(
                                const boost::shared_ptr<ShortRateModel>& model,
-                               const TimeGrid& timeGrid);
+                               const TimeGrid& timeGrid,
+			                   const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator =
+			                   boost::shared_ptr<AdditionalResultCalculator>());
         void update();
       protected:
         TimeGrid timeGrid_;
         Size timeSteps_;
         boost::shared_ptr<Lattice> lattice_;
+		boost::shared_ptr<AdditionalResultCalculator> additionalResultCalculator_;
     };
 
     template <class Arguments, class Results>
     LatticeShortRateModelEngine<Arguments, Results>::LatticeShortRateModelEngine(
             const boost::shared_ptr<ShortRateModel>& model,
-            Size timeSteps)
+            Size timeSteps,
+            const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : GenericModelEngine<ShortRateModel, Arguments, Results>(model),
-      timeSteps_(timeSteps) {
+      timeSteps_(timeSteps),
+      additionalResultCalculator_(additionalResultCalculator) {
         QL_REQUIRE(timeSteps>0,
                    "timeSteps must be positive, " << timeSteps <<
                    " not allowed");
@@ -68,9 +78,11 @@ namespace QuantLib {
     template <class Arguments, class Results>
     LatticeShortRateModelEngine<Arguments, Results>::LatticeShortRateModelEngine(
             const Handle<ShortRateModel>& model,
-            Size timeSteps)
+            Size timeSteps,
+            const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : GenericModelEngine<ShortRateModel, Arguments, Results>(model),
-      timeSteps_(timeSteps) {
+      timeSteps_(timeSteps),
+      additionalResultCalculator_(additionalResultCalculator) {
         QL_REQUIRE(timeSteps>0,
                    "timeSteps must be positive, " << timeSteps <<
                    " not allowed");
@@ -79,10 +91,12 @@ namespace QuantLib {
     template <class Arguments, class Results>
     LatticeShortRateModelEngine<Arguments, Results>::LatticeShortRateModelEngine(
             const boost::shared_ptr<ShortRateModel>& model,
-            const TimeGrid& timeGrid)
+            const TimeGrid& timeGrid,
+            const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator)
     : GenericModelEngine<ShortRateModel, Arguments, Results>(model),
-      timeGrid_(timeGrid), timeSteps_(0) {
-        lattice_ = this->model_->tree(timeGrid);
+      timeGrid_(timeGrid), timeSteps_(0),
+      additionalResultCalculator_(additionalResultCalculator) {
+        lattice_ = this->model_->tree(timeGrid, additionalResultCalculator_);
     }
 
     template <class Arguments, class Results>

@@ -35,6 +35,7 @@
 #include <boost/lambda/lambda.hpp>
 
 using namespace QuantLib;
+namespace utf = boost::unit_test_framework;
 using boost::unit_test_framework::test_suite;
 
 namespace {
@@ -261,8 +262,8 @@ void IntegralTest::testDiscreteIntegrals() {
     }
 }
 
-test_suite* IntegralTest::suite() {
-    test_suite* suite = BOOST_TEST_SUITE("Integration tests");
+utf::test_suite* IntegralTest::suite() {
+    utf::test_suite* suite = BOOST_TEST_SUITE("Integration tests");
     suite->add(QUANTLIB_TEST_CASE(&IntegralTest::testSegment));
     suite->add(QUANTLIB_TEST_CASE(&IntegralTest::testTrapezoid));
     suite->add(QUANTLIB_TEST_CASE(&IntegralTest::testMidPointTrapezoid));

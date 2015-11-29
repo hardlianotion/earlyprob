@@ -50,7 +50,7 @@ namespace QuantLib {
         return times;
     }
 
-    void DiscretizedCapFloor::preAdjustValuesImpl() {
+    void DiscretizedCapFloor::preAdjustValuesImpl(Time) {
         for (Size i=0; i<startTimes_.size(); i++) {
             if (isOnTime(startTimes_[i])) {
                 Time end = endTimes_[i];
@@ -85,7 +85,7 @@ namespace QuantLib {
         }
     }
 
-    void DiscretizedCapFloor::postAdjustValuesImpl() {
+    void DiscretizedCapFloor::postAdjustValuesImpl(Time) {
         for (Size i=0; i<endTimes_.size(); i++) {
             if (isOnTime(endTimes_[i])) {
                 if (startTimes_[i] < 0.0) {

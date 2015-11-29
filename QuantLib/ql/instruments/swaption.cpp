@@ -133,6 +133,16 @@ namespace QuantLib {
         QL_REQUIRE(exercise, "exercise not set");
     }
 
+	std::pair<Real, Real> Swaption::exerciseProbabilityAndRate(Time exerciseDate) const {
+		engine_->calculate();
+		const Instrument::results* results = dynamic_cast<const Instrument::results*>(engine_->getResults());
+		std::map<std::string, boost::any>::const_iterator resultPtr =
+			results->additionalResults.find("ExerciseProbability");
+		QL_REQUIRE(resultPtr != results->additionalResults.end(),
+			"Exercise probability not provided");
+		return boost::any_cast<std::pair<Real, Real>>(resultPtr->second);
+	}
+
     Volatility Swaption::impliedVolatility(Real targetValue,
                                            const Handle<YieldTermStructure>& d,
                                            Volatility guess,

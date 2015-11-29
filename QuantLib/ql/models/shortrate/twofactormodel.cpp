@@ -27,7 +27,9 @@ namespace QuantLib {
     : ShortRateModel(nArguments) {}
 
     boost::shared_ptr<Lattice>
-    TwoFactorModel::tree(const TimeGrid& grid) const {
+    TwoFactorModel::tree(const TimeGrid& grid,
+						 const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator) const {
+
         boost::shared_ptr<ShortRateDynamics> dyn = dynamics();
 
         boost::shared_ptr<TrinomialTree> tree1(

@@ -27,7 +27,8 @@
 
 #include <ql/models/model.hpp>
 #include <ql/methods/lattices/lattice1d.hpp>
-#include <ql/methods/lattices/trinomialtree.hpp>
+#include <ql/methods/lattices/trinomialtree.hpp>  
+#include <ql/pricingengines/additionalresultcalculators.hpp>
 
 namespace QuantLib {
     class StochasticProcess1D;
@@ -46,7 +47,9 @@ namespace QuantLib {
         virtual boost::shared_ptr<ShortRateDynamics> dynamics() const = 0;
 
         //! Return by default a trinomial recombining tree
-        boost::shared_ptr<Lattice> tree(const TimeGrid& grid) const;
+        boost::shared_ptr<Lattice> tree(const TimeGrid& grid, 
+										const boost::shared_ptr<AdditionalResultCalculator>& additionalResultCalculator = 
+											boost::shared_ptr<AdditionalResultCalculator>()) const;
     };
 
     //! Base class describing the short-rate dynamics
