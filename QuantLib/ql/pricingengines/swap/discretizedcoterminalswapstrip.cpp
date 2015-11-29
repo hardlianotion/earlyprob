@@ -30,7 +30,7 @@ namespace QuantLib {
         const DayCounter& dayCounter,
         const std::vector<Date>& entryDates)
         : arguments_(args), coterminalStrip_(entryDates.size()) {
-        QL_REQUIRE(!entryDates.empty(), "Strip size must be greater than 0.");
+        QL_REQUIRE(!entryDates.empty(), "Number of swap exercise candidates must be greater than 0.");
 
         for (size_t i = 0; i < entryDates.size(); ++i) {
             coterminalStrip_[i] = boost::shared_ptr<DiscretizedSwap>(new DiscretizedSwap(args, referenceDate, dayCounter, entryDates[i]));
