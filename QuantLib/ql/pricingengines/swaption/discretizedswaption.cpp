@@ -91,7 +91,7 @@ namespace QuantLib {
                                                                 referenceDate,
                                                                 dayCounter, positiveDates));
         underlyingAsSwapStrip_ = boost::dynamic_pointer_cast<DiscretizedCoterminalSwapStrip>(underlying_);
-        QL_REQUIRE(underlyingAsSwapStrip_ != nullptr, "Underlying must be a DiscretizedCoterminalSwapStrip object.");
+        QL_REQUIRE(underlyingAsSwapStrip_ /*!= nullptr*/, "Underlying must be a DiscretizedCoterminalSwapStrip object.");
     }
 
     const boost::shared_ptr<std::vector<std::pair<bool, std::pair<Size, Real> > > > DiscretizedSwaption::exerciseIndex() const {
