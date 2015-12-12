@@ -2,3 +2,4 @@ build
 test.cpp
 .time-stamp
 debug.txt
+*.filters

@@ -14,3 +14,4 @@ stamp-h1
 *.suo
 .time-stamp
 build
+*.filters
